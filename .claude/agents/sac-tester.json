@@ -1,5 +1,8 @@
 {
   "name": "sac-tester",
+  "status": "deprecated",
+  "format": "legacy-custom-agent-json",
+  "replacement": ".claude/agents/reviewer.md",
   "description": "SAC 测试 Agent — 模板验证与部署测试",
   "roles": [
     "Terraform 模板结构验证",
@@ -22,11 +25,13 @@
     "内联 user_data 检查结果",
     "变量 validation 测试结果",
     "资源完整性检查清单",
-    "本地交付包验证结果"
+    "本地交付包验证结果",
+    "准确 commands、退出码、evidence、文件行号与通用 handoff：status、summary、files_changed、checks_run、issues、handoff"
   ],
   "rules": [
-    "必须运行 scripts.tests.runner，包括 rfs_policy",
+    "必须使用仓库 .venv-sac/bin/python 运行 scripts.tests.runner，包括 rfs_policy，并返回命令与退出码",
     "不默认加载完整 sac-rfs-practices；按 sac-testing 的明确引用读取检查规则",
-    "测试 ERROR 必须阻断文档和交付"
+    "测试 ERROR 必须阻断文档和交付",
+    "不得在没有精确候选云测证据时声明真实部署成功"
   ]
 }

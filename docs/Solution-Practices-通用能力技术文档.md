@@ -23,6 +23,7 @@
 | 验证 | `sac-testing` | 静态检查、策略检查和测试门禁 |
 | 验证 | `sac-security` | 凭证、暴露面、供应链和交付包审计 |
 | 文档 | `sac-documentation` | 维护或生成 Markdown、翻译、可选 DOCX 与文档门禁 |
+| 文档 | `query-huawei-cloud-prices` | 按需查询实时价格，不维护本地价格表 |
 | 兼容 | `sac-document-pipeline` | 旧名称入口，仅转交 `sac-documentation` |
 | 文档 | `sac-page-enhance` | 已有页面的窄范围内容增强 |
 | 交付 | `sac-delivery` | 本地 release 目录、归档、SHA-256 和一致性验证 |
@@ -37,30 +38,28 @@ Agent 实际加载以 `.codex/agents/` 角色合同为准；`skills-index.json` 
   -> 用户确认站点 / Region / standard|ha / 关键输入
   -> 冻结架构合同
   -> Developer 实现
-  -> Tester + Security 并行只读验证
-  -> 用户在目标云环境测试候选版本
+  -> Tester 静态验证（Security 按需）
   -> Documenter 生成站点文档
   -> Delivery 生成本地 ZIP + SHA256SUMS
   -> 主 Agent 最终门禁与汇报
 ```
 
-快速原型可在架构合同冻结后停止于实现阶段；审计流程默认只读；仅交付流程要求已有的测试、
-安全、文档和用户云测证据。
+快速原型可在架构合同冻结后停止于实现阶段；审计流程默认只读。用户在目标云环境验证候选
+版本是独立步骤，静态门禁和本地交付不能替代该证据。
 
 ## 4. 目录与语言
 
 ```text
-practices/{project}/{site}/{region}/{variant}/
-├── terraform/deploying-{project}_vN.tf
-├── .extension                         # 可选
-└── docs/
-    ├── zh-cn/                         # 按站点需要
-    └── en-us/                         # 国际站需要
+practices/{project}/
+├── cn/{region}[/variant]/deploying-{project}_vN.tf
+├── cn/docs/
+├── intl/{region}[/variant]/deploying-{project}_vN.tf
+└── intl/docs/{zh-cn,en-us}/
 ```
 
 - `site` 是 `cn` 或 `intl`。
 - `region` 使用真实云区域代码。
-- `variant` 是 `standard` 或 `ha`。
+- `variant` 仅在同一 Region 有多个部署形态时出现，名称由产品合同决定。
 - 安装、配置、Docker Compose 和健康检查逻辑内联在 Terraform `user_data` 中。
 - 不创建依赖外部托管位置的安装脚本。
 
@@ -82,11 +81,11 @@ practices/{project}/{site}/{region}/{variant}/
 
 1. Terraform/HCL、JSON 和内联脚本语法通过。
 2. `rfs_policy`、变量验证、依赖链和区域约束通过。
-3. 无明文凭证、危险插值、不必要公网暴露或未声明外部依赖。
-4. 文档只使用可追溯事实；估算值明确标记依据和假设。
-5. 国际站中英文语义一致。
-6. 用户云测结果与候选四级版本绑定。
-7. 本地归档内容与源资产一致，SHA-256 可复核。
+3. 文档只使用可追溯事实；估算值明确标记依据和假设。
+4. 国际站中英文语义一致。
+5. 本地归档内容与源资产一致，SHA-256 可复核。
+
+安全审计和用户云测按任务需要单独执行；没有对应证据时不得声称已经通过。
 
 ## 7. Agent 边界
 

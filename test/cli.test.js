@@ -13,18 +13,26 @@ async function fixture(t) {
 }
 
 test('formal practices come from project.config.json', async () => {
-  assert.deepEqual(await availablePractices(), ['litellm', 'supabase', 'openjiuwen']);
+  const config = JSON.parse(await readFile('project.config.json', 'utf8'));
+  assert.deepEqual(await availablePractices(), config.formal.practices);
 });
 
-test('init installs Codex assets, skills, and manifest', async (t) => {
+test('init installs Codex, Claude Code, skills, and manifest', async (t) => {
   const dir = await fixture(t);
-  const result = await executeInstall({ targetDir: dir, components: ['codex', 'skills'] });
+  const result = await executeInstall({ targetDir: dir, components: ['codex', 'claude', 'skills'] });
   assert.equal(result.manifest.components.codex, true);
+  assert.equal(result.manifest.components.claude, true);
   assert.equal(result.manifest.components.skills, true);
   assert.match(await readFile(join(dir, 'AGENTS.md'), 'utf8'), /<!-- SAC:START -->/);
-  assert.match(await readFile(join(dir, '.codex/agents/architect.toml'), 'utf8'), /name = "sac_architect"/);
-  assert.match(await readFile(join(dir, 'skills/sac-testing/SKILL.md'), 'utf8'), /name: sac-testing/);
-  assert.match(await readFile(join(dir, '.codex/skills/sac-testing/SKILL.md'), 'utf8'), /name: sac-testing/);
+  assert.match(await readFile(join(dir, '.codex/agents/builder.toml'), 'utf8'), /name = "sac_builder"/);
+  assert.match(await readFile(join(dir, 'skills/sac-quality/SKILL.md'), 'utf8'), /name: sac-quality/);
+  assert.match(await readFile(join(dir, '.agents/skills/sac-quality/SKILL.md'), 'utf8'), /name: sac-quality/);
+  assert.match(await readFile(join(dir, '.claude/CLAUDE.md'), 'utf8'), /SAC project instructions/);
+  assert.match(await readFile(join(dir, '.claude/agents/builder.md'), 'utf8'), /name: builder/);
+  assert.match(await readFile(join(dir, '.claude/skills/sac-quality/SKILL.md'), 'utf8'), /name: sac-quality/);
+  assert.match(await readFile(join(dir, '.claude/agents/sac-architect.json'), 'utf8'), /sac-architect/);
+  assert.match(await readFile(join(dir, '.claude/workflows/sac-full-pipeline.js'), 'utf8'), /sac-full-pipeline/);
+  assert.match(await readFile(join(dir, 'docs/coding-agent-adapters.md'), 'utf8'), /SAC Core/);
   assert.match(await readFile(join(dir, '.sac/tooling/scripts/document_pipeline/__main__.py'), 'utf8'), /cli/);
   assert.match(await readFile(join(dir, '.sac/tooling/scripts/tests/runner.py'), 'utf8'), /SAC Solution Test Report/);
   const installedTemplate = await readFile(join(dir, '.sac/tooling/scripts/document_pipeline/templates/company-solution-guide.docx'));
@@ -35,6 +43,7 @@ test('init installs Codex assets, skills, and manifest', async (t) => {
   const persisted = JSON.parse(await readFile(join(dir, '.sac/manifest.json'), 'utf8'));
   assert.equal(persisted.schemaVersion, 1);
   assert.ok(persisted.managedFiles['.codex/agents/architect.toml']);
+  assert.ok(persisted.managedFiles['.claude/CLAUDE.md']);
 });
 
 test('init merges AGENTS.md idempotently and preserves user content', async (t) => {
@@ -48,6 +57,48 @@ test('init merges AGENTS.md idempotently and preserves user content', async (t) 
   assert.equal(content.match(/<!-- SAC:END -->/g)?.length, 1);
 });
 
+test('Claude install merges CLAUDE.md idempotently and preserves user content', async (t) => {
+  const dir = await fixture(t);
+  await mkdir(join(dir, '.claude'), { recursive: true });
+  await writeFile(join(dir, '.claude/CLAUDE.md'), '# User Claude rules\n\nKeep this.\n');
+  await executeInstall({ targetDir: dir, components: ['claude'] });
+  await executeInstall({ targetDir: dir, components: ['claude'] });
+  const content = await readFile(join(dir, '.claude/CLAUDE.md'), 'utf8');
+  assert.match(content, /Keep this\./);
+  assert.equal(content.match(/<!-- SAC:START -->/g)?.length, 1);
+  assert.equal(content.match(/<!-- SAC:END -->/g)?.length, 1);
+});
+
+test('Codex-only and Claude-only installs are self-contained and isolated', async (t) => {
+  const codexDir = await fixture(t);
+  const claudeDir = await fixture(t);
+
+  const codex = await executeInstall({ targetDir: codexDir, components: ['codex'] });
+  assert.equal(codex.manifest.components.codex, true);
+  assert.equal(codex.manifest.components.skills, true);
+  await access(join(codexDir, '.agents/skills/sac-project/SKILL.md'));
+  await assert.rejects(access(join(codexDir, '.claude/CLAUDE.md')));
+  assert.equal((await diagnose(codexDir)).ok, true);
+
+  const claude = await executeInstall({ targetDir: claudeDir, components: ['claude'] });
+  assert.equal(claude.manifest.components.claude, true);
+  assert.equal(claude.manifest.components.skills, true);
+  await access(join(claudeDir, 'skills/sac-project/SKILL.md'));
+  await access(join(claudeDir, '.claude/skills/sac-project/SKILL.md'));
+  await assert.rejects(access(join(claudeDir, '.codex/config.toml')));
+  await assert.rejects(access(join(claudeDir, '.agents/skills/sac-project/SKILL.md')));
+  assert.equal((await diagnose(claudeDir)).ok, true);
+});
+
+test('all install is an explicit alias for the dual-platform init set', async (t) => {
+  const dir = await fixture(t);
+  const result = await executeInstall({ targetDir: dir, components: ['all'] });
+  assert.equal(result.manifest.components.codex, true);
+  assert.equal(result.manifest.components.claude, true);
+  assert.equal(result.manifest.components.skills, true);
+  assert.equal((await diagnose(dir)).ok, true);
+});
+
 test('update protects user-modified managed files', async (t) => {
   const dir = await fixture(t);
   await executeInstall({ targetDir: dir, components: ['codex'] });
@@ -57,6 +108,17 @@ test('update protects user-modified managed files', async (t) => {
   assert.ok(result.actions.some((item) => item.action === 'conflict' && item.path === '.codex/agents/architect.toml'));
   assert.match(await readFile(agent, 'utf8'), /# user edit/);
   assert.match(await readFile(`${agent}.sac-new`, 'utf8'), /name = "sac_architect"/);
+});
+
+test('update protects user-modified Claude Subagents with .sac-new', async (t) => {
+  const dir = await fixture(t);
+  await executeInstall({ targetDir: dir, components: ['claude'] });
+  const agent = join(dir, '.claude/agents/builder.md');
+  await writeFile(agent, `${await readFile(agent, 'utf8')}\n# user edit\n`);
+  const result = await updateInstalled({ targetDir: dir });
+  assert.ok(result.actions.some((item) => item.action === 'conflict' && item.path === '.claude/agents/builder.md'));
+  assert.match(await readFile(agent, 'utf8'), /# user edit/);
+  assert.match(await readFile(`${agent}.sac-new`, 'utf8'), /name: builder/);
 });
 
 test('update removes obsolete managed skills but preserves modified ones', async (t) => {
@@ -85,6 +147,27 @@ test('update removes obsolete managed skills but preserves modified ones', async
   assert.ok(result.actions.some((item) => item.action === 'preserve-stale'));
 });
 
+test('update migrates legacy managed Codex skills to .agents/skills', async (t) => {
+  const dir = await fixture(t);
+  await executeInstall({ targetDir: dir, components: ['codex'] });
+  const manifestPath = join(dir, '.sac/manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  const legacy = '.codex/skills/sac-testing/SKILL.md';
+  const content = await readFile(join(dir, '.agents/skills/sac-testing/SKILL.md'));
+  await mkdir(join(dir, '.codex/skills/sac-testing'), { recursive: true });
+  await writeFile(join(dir, legacy), content);
+  manifest.managedFiles[legacy] = {
+    checksum: manifest.managedFiles['.agents/skills/sac-testing/SKILL.md'].checksum,
+    component: 'skills',
+    mode: 'managed',
+  };
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const result = await updateInstalled({ targetDir: dir });
+  await assert.rejects(access(join(dir, legacy)));
+  assert.ok(result.actions.some((item) => item.action === 'remove-stale' && item.path === legacy));
+});
+
 test('update rejects stale managed paths outside the project', async (t) => {
   const dir = await fixture(t);
   await executeInstall({ targetDir: dir, components: ['skills'] });
@@ -97,7 +180,7 @@ test('update rejects stale managed paths outside the project', async (t) => {
 
 test('doctor reports a healthy initialized project', async (t) => {
   const dir = await fixture(t);
-  await executeInstall({ targetDir: dir, components: ['codex', 'skills'] });
+  await executeInstall({ targetDir: dir, components: ['codex', 'claude', 'skills'] });
   const report = await diagnose(dir);
   assert.equal(report.ok, true);
   assert.deepEqual(report.results, [{ level: 'ok', code: 'healthy', message: 'SAC installation is healthy.' }]);
@@ -125,8 +208,8 @@ test('formal practice installation records and copies the selected practice', as
   const result = await executeInstall({ targetDir: dir, components: [], practices: ['openjiuwen'] });
   assert.deepEqual(result.manifest.components.practices, ['openjiuwen']);
   for (const template of [
-    'practices/openjiuwen/cn/cn-north-4/agent-studio/terraform/deploying-openjiuwen.tf',
-    'practices/openjiuwen/cn/cn-north-4/jiuwenswarm/terraform/deploying-jiuwenswarm.tf',
+    'practices/openjiuwen/cn/cn-north-4/agent-studio/deploying-openjiuwen.tf',
+    'practices/openjiuwen/cn/cn-north-4/jiuwenswarm/deploying-jiuwenswarm_v7.tf',
   ]) {
     assert.match(await readFile(join(dir, template), 'utf8'), /resource\s+"huaweicloud_compute_instance"/);
   }

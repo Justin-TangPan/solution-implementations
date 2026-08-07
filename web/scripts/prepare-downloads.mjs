@@ -23,7 +23,7 @@ for (const slug of formal) {
       }
     }
   }
-  copy(source, "terraform", name => name.endsWith(".tf"))
+  copy(source, "terraform", name => name.endsWith(".tf") || name.endsWith(".tf.json"))
   copy(source, "docs", name => /\.(md|mdx)$/i.test(name))
   for (const bucket of ["terraform", "docs"]) {
     const dir = join(target, bucket)

@@ -14,6 +14,7 @@ export type ReleaseInfo = {
 const ROOT = join(process.cwd(), "..")
 const RELEASES_DIR = join(ROOT, "release")
 const PRACTICES_DIR = join(ROOT, "practices")
+const FORMAL = new Set<string>(JSON.parse(readFileSync(join(ROOT, "project.config.json"), "utf8")).formal.practices)
 
 function subdirs(p: string): string[] {
   if (!existsSync(p)) return []
@@ -54,7 +55,7 @@ function detectVersion(practicePath: string): string | null {
 }
 
 export function getReleases(): ReleaseInfo[] {
-  const slugs = subdirs(RELEASES_DIR).sort()
+  const slugs = subdirs(RELEASES_DIR).filter(slug => FORMAL.has(slug)).sort()
   return slugs.map(slug => {
     const releasePath = join(RELEASES_DIR, slug)
     const sites = subdirs(releasePath).filter(s => s !== "docs")
@@ -73,13 +74,15 @@ export function getReleases(): ReleaseInfo[] {
       if (vm) repoVersion = vm[1]
     } catch { /* ignore */ }
 
+    const packaged = existsSync(join(releasePath, "SHA256SUMS"))
+      && readdirSync(releasePath).some(name => name.endsWith(".zip"))
     return {
       name: slug,
       sites: sites.length > 0 ? sites : [],
       regions,
       hasHA: hA,
       version: repoVersion || version,
-      status: sites.length > 0 ? "本地已打包" : "开发中",
+      status: packaged ? "本地已打包" : "开发中",
     }
   })
 }

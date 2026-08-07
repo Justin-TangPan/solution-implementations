@@ -1,73 +1,10 @@
 ---
 name: sac-technical-evaluator
-description: 为主 Agent 的系统评估提供只读技术候选输入，分析上游架构、华为云适配性、资源、安全、成本和运维风险；不替代用户确认或架构合同。
+description: Deprecated compatibility alias for technical-assessment requests that used sac-technical-evaluator. Route upstream, cloud-fit, topology, dependency, security, cost, and operations analysis to sac-architecture.
 ---
 
-# SAC 技术评估
+# SAC Technical Evaluator Compatibility Alias
 
-本 Skill 是主 Agent 系统评估阶段的只读辅助能力。它输出候选方案、证据、风险和待确认项，不创建实现文件、不部署资源，也不冻结最终架构。
+This legacy name is retained for compatibility. Load and follow `skills/sac-architecture/SKILL.md` in full.
 
-## 输入
-
-最低输入是项目名称、上游地址或足以定位项目的描述。以下信息若用户已经提供则直接采用；否则由评估发现、提出候选值，并在初版方案中交给用户确认：
-
-- 站点：`cn` / `intl`
-- Region
-- 部署形式：`standard` / `ha`
-- 安装与运行方式
-- 公网入口、应用端口和访问范围
-- 数据库、对象存储、模型 API 等外部依赖
-- 容量、可用性、成本和合规约束
-
-不得要求用户在评估开始前预先填写 Region、站点、应用类型或端口；无法从上游证据确定的内容标记为“待确认”，不得猜测成事实。
-
-## 评估内容
-
-1. **上游架构**：技术栈、运行时、组件、状态、端口、数据路径、外部依赖和官方部署方式。
-2. **华为云适配**：镜像与软件源可达性、CPU 架构、ECS/CCE/RDS 等候选映射、Region 可用性。
-3. **部署候选**：给出最小可用 `standard` 候选；仅在需求或证据支持时给出 `ha` 候选。
-4. **安全**：身份认证、TLS、最小端口、密钥管理、数据保护、供应链和合规风险。
-5. **运维**：健康检查、日志、备份恢复、升级回滚、容量边界。
-6. **成本**：列资源构成和计费变量；未查询对应站点、Region 和计费方式时不得给出固定费用。
-
-## 候选默认值
-
-- `cn` ECS 候选从 `x1` 系列起评估，最终规格必须结合 Region 可售性与工作负载确认。
-- `intl` ECS 候选从通用规格 `c7n.2xlarge.2` 起评估，禁止套用 `x1.*`。
-- 镜像优先采用上游明确支持的稳定版本；不能仅因版本较新就默认选用。
-- SSH 仅允许 CloudShell 来源 CIDR `/32`；不得建议 `0.0.0.0/0`。
-- 公网应用入口、端口、TLS 终止方式和来源范围都是待用户确认项，不得默认开放。
-- 出站访问也应按上游依赖列出目的和用途。
-
-这些只是初版方案候选，不是冻结配置。Region 可售性、产品规格和价格属于时效信息，必须在使用时从华为云官方来源核验。
-
-## 输出
-
-```markdown
-# {项目名} 技术评估
-
-## 已验证事实
-- 上游架构与官方部署方式：...
-- 版本、许可证和依赖：...
-
-## 华为云适配性
-- 可行项：...
-- 限制与替代：...
-
-## 初版候选
-- 站点 / Region：候选及理由
-- 部署形式：standard / ha 候选及触发条件
-- 运行方式：...
-- 资源构成：...
-- 网络入口：待确认项及安全建议
-- 外部依赖：...
-
-## 安全、运维与成本风险
-- 风险 / 影响 / 缓解：...
-- 计费变量与查价口径：...
-
-## 用户确认项
-- 仅列影响架构合同且尚未明确的选择
-```
-
-输出交回主 Agent，由主 Agent整合业务评估和其他证据形成初版方案；用户确认后才能冻结架构合同并派发实现。
+Add no assessment method or output contract from this alias. New work must use `sac-architecture`.

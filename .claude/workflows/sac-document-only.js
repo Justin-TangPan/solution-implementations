@@ -1,5 +1,8 @@
 export const meta = {
   name: 'sac-document-only',
+  status: 'deprecated',
+  runtime: 'legacy-custom-workflow-dsl',
+  replacement: 'Claude native builder with sac-documentation',
   description: 'SAC 文档专用流水线：分析、生成、翻译、IDP Word 渲染、存量转换或只读质量检查',
   phases: [
     { title: 'Document', detail: '统一标准稿、双语输出与质量门禁' },
@@ -77,18 +80,20 @@ const documentResult = await agent({
       quality_status: { type: 'string', enum: ['pass', 'warning', 'fail'] },
       errors: { type: 'array', items: { type: 'object' } },
       warnings: { type: 'array', items: { type: 'object' } },
-      manual_review_items: { type: 'array', items: { type: 'object' } },
+      manual_review_items: { type: 'array', items: { type: 'object', properties: { blocking: { type: 'boolean' } }, required: ['blocking'] } },
+      status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
     },
-    required: ['standard_document', 'markdown_files', 'docx_files', 'languages', 'quality_report', 'quality_status', 'errors', 'warnings', 'manual_review_items'],
+    required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'standard_document', 'markdown_files', 'docx_files', 'languages', 'quality_report', 'quality_status', 'errors', 'warnings', 'manual_review_items'],
   },
 })
 
 phase('Review')
 const blockingErrors = documentResult.errors.filter(error => error.blocks_export !== false)
-const gatePassed = documentResult.quality_status !== 'fail' && blockingErrors.length === 0
+const blockingManualReviews = documentResult.manual_review_items.filter(item => item.blocking === true)
+const gatePassed = documentResult.quality_status !== 'fail' && blockingErrors.length === 0 && blockingManualReviews.length === 0
 
 if (!gatePassed) {
-  log(`❌ 文档质量门禁失败：${blockingErrors.length} 个阻断错误`)
+  log(`❌ 文档质量门禁失败：${blockingErrors.length} 个阻断错误，${blockingManualReviews.length} 个阻断人工确认项`)
   log('   结果仅供整改，不得交付或导入 IDP')
 } else {
   log(`✅ 文档自动检查完成（${documentResult.quality_status}）`)

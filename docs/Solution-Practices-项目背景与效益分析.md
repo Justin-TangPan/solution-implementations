@@ -1,5 +1,9 @@
 # Solution Practices (SAC) — 项目背景与效益分析
 
+> **历史提案，不是当前能力事实源。** 本文保留 2026-06 的业务假设、旧名称和估算指标，
+> 不代表当前仓库具备独立 Agent Runtime、无人值守交付或所述效率。当前定位与边界见
+> [project-boundaries.md](project-boundaries.md)，正式范围见 `project.config.json`。
+
 > **版本**: v1.0 · **日期**: 2026-06-16
 >
 > 配套文档：[Solution-Practices-通用能力技术文档.md](./Solution-Practices-通用能力技术文档.md)

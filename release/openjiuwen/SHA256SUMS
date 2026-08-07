@@ -1,9 +1,9 @@
 e2d2a2f3ed83a20d105d2def95f4370a7c49a57181e61c1b94520afb4b2306a9  cn/cn-north-4/agent-studio/.extension
-654057ee30a226a8cb939ccbc9b496236b820a1711c8a02d13994d533097aa4e  cn/cn-north-4/agent-studio/deploy-openjiuwen-cn-north-4-agent-studio.tf
+654057ee30a226a8cb939ccbc9b496236b820a1711c8a02d13994d533097aa4e  cn/cn-north-4/agent-studio/terraform/deploying-openjiuwen.tf
 8e3d25753d27c082fcea1bcb7bc6b1abeb52f07dec0ee0fdd01157293598113c  cn/cn-north-4/jiuwenswarm/.extension
-55923df56f73f6032170a822118d1679dec02110b491e59527a731c0e287d436  cn/cn-north-4/jiuwenswarm/deploy-openjiuwen-cn-north-4-jiuwenswarm.tf
+55923df56f73f6032170a822118d1679dec02110b491e59527a731c0e287d436  cn/cn-north-4/jiuwenswarm/terraform/deploying-jiuwenswarm.tf
 63a1a4224150e7907b88fd2a28a5901d83d8581c3ae97c3b4f09bf92405b84bf  cn/docs/JiuwenSwarm-方案详情_zh.md
 c56e0402385665592614afabe8259bf9d6ec6c2cc7596fe024e9696838139797  cn/docs/JiuwenSwarm-部署指南_zh.md
 e25d84f841debb649b3e16dfd7a130707016fefd52ff667de0f2217301f5ba05  cn/docs/openJiuwen-方案详情_zh.md
 f5ccee62cad2590482e5614530fcef774b56ea0ce57ade93cb2fbf41271d1a4b  cn/docs/openJiuwen-部署指南_zh.md
-1a34d5d55f2c5643be670a8f161519d72fafe3d19d2666ad06119d0c058c47ca  openjiuwen-v0.9.2.zip
+176c134ac899191f81b1f9803562b4728c4ff4d523ed1892ceae35accac43dcb  openjiuwen-v0.10.0.zip

@@ -26,8 +26,10 @@ Terraform 模板必须通过内联 `user_data` 完成依赖安装、配置生成
 先确认站点，再从 `skills/reference/region-mapping.md` 选择该站点有效 Region。目录固定为：
 
 ```text
-practices/<practice>/<site>/<region>/<standard|ha>/
+practices/<practice>/<site>/<region>/
 ```
+
+只有同一 Region 需要多个部署形态时才增加 `<variant>/`；单一标准版的 Region 目录本身就是 deployable instance。
 
 Region 不决定语言目录，也不得把香港等 Region 当作站点。
 
@@ -39,11 +41,11 @@ Region 不决定语言目录，也不得把香港等 Region 当作站点。
 
 ## Decision 5: 部署架构
 
-- `standard`：满足目标负载的最小可运维拓扑。
+- `standard`：满足目标负载的最小可运维拓扑；作为唯一形态时不建同名目录。
 - `ha`：仅在用户明确需要高可用，且上游组件和华为云资源具备可验证的高可用设计时选择。
 
 ## Decision 6: 运行方式
 
 - Docker Compose：上游提供可靠容器镜像，或应用由多个协同服务组成时优先。
 - 直接安装：上游正式支持且单进程部署更简单时使用。
-- 选择必须写入架构合同，不在实现阶段临时切换。
+- 选择必须写入架构方案，不在实现阶段临时切换。

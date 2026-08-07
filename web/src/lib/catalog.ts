@@ -1,37 +1,52 @@
-// 数据访问层：合并 practices-index.json（FS 结构，由 scripts/gen-practices-index.mjs 生成）
-// 与 data.ts（编辑性字段：score/tier/cost/overview/tagline/category/stars/color）。
-// 合并键 = slug。FS 提供真实 regions/hasHA，编辑字段由 data.ts 维护。
+import practicesIndex from "./practices-index.json" with { type: "json" }
+import { practices as editorial, evaluations } from "./data"
 
-import practicesIndex from "./practices-index.json" with { type: "json" };
-import { practices as editorial, evaluations } from "./data";
-
-type Editorial = (typeof editorial)[number];
-
-const fsBySlug = new Map<string, { regions: string[]; hasHA: boolean; sites: string[]; title: string | null; docsPath: string | null }>(
-  practicesIndex.practices.map(p => [p.slug, { regions: p.regions, hasHA: p.hasHA, sites: p.sites, title: p.title, docsPath: p.docsPath }])
-);
-
-// 合并：编辑字段优先，regions/hasHA 用 FS 真实值覆盖
-export const practices: Editorial[] = editorial.flatMap(p => {
-  const fs = fsBySlug.get(p.slug);
-  return fs ? [{ ...p, regions: fs.regions, hasHA: fs.hasHA }] : [];
-});
-
-export function getPractices() {
-  return practices;
+export type Practice = {
+  slug: string
+  name: string
+  tagline: string
+  desc: string
+  overview: string
+  stars: string
+  category: string
+  score: number | null
+  tier: string | null
+  cost: string
+  color: string
+  regions: string[]
+  sites: string[]
+  hasHA: boolean
 }
 
-export function getPractice(slug: string): Editorial | undefined {
-  return practices.find(p => p.slug === slug);
-}
+const editorialBySlug = new Map(editorial.map(item => [item.slug, item]))
 
-export function getPracticeSlugs(): string[] {
-  return practices.map(p => p.slug);
-}
+// 正式范围来自生成索引；人工元数据缺失时保留方案并明确标记，不静默隐藏。
+export const practices: Practice[] = practicesIndex.practices.map(item => {
+  const copy = editorialBySlug.get(item.slug)
+  return {
+    slug: item.slug,
+    name: copy?.name ?? item.title ?? item.slug,
+    tagline: copy?.tagline ?? "人工展示信息待补充",
+    desc: copy?.desc ?? "该正式 Practice 尚未补充人工展示说明。",
+    overview: copy?.overview ?? "正式范围和部署事实以 project.config.json 与 practices/ 为准。",
+    stars: copy?.stars ?? "—",
+    category: copy?.category ?? "待维护",
+    score: copy?.score ?? null,
+    tier: copy?.tier ?? null,
+    cost: copy?.cost ?? "人工维护字段待补充",
+    color: copy?.color ?? "stone",
+    regions: item.regions,
+    sites: item.sites,
+    hasHA: item.hasHA,
+  }
+})
 
-export { evaluations };
+export function getPractices() { return practices }
+export function getPractice(slug: string) { return practices.find(item => item.slug === slug) }
+export function getPracticeSlugs() { return practices.map(item => item.slug) }
 
-// FS 中存在但 data.ts 未收录的 slug（需补编辑元数据才会出现在目录）
-export const uncatalogued: string[] = practicesIndex.practices
-  .filter(p => !editorial.some(e => e.slug === p.slug))
-  .map(p => p.slug);
+export { evaluations }
+
+export const uncatalogued = practicesIndex.practices
+  .filter(item => !editorialBySlug.has(item.slug))
+  .map(item => item.slug)

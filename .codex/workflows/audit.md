@@ -1,20 +1,13 @@
-# audit — SAC Codex 审计
+# audit — Review Practice
 
-## 输入
+兼容原工作流名；默认 Task Flow 为只读 Reviewer：
 
-`project`；可选 `regions`、`variants`、`fix=false`、`release_package`。
+```text
+Reviewer → Builder Fix（仅用户要求修复时）→ Reviewer
+```
 
-## 阶段
+Reviewer 按用户范围统一执行 Terraform 质量、安全、架构/文档一致性、diff 或交付物检查，保留
+命令、退出码、文件位置和证据，并区分阻断、非阻断、Accepted Risk 与云测边界。
 
-1. 主 Agent确认审计范围和现有工作区修改。
-2. 并行派发只读 `tester` 与 `security`。
-3. 仅当用户要求审计候选交付包、归档、校验和或 release readiness 时，追加只读 `delivery`；
-   普通“质量与安全审计”不加载交付 Skill。
-4. 主 Agent去重、校验证据并按严重级别汇总。
-5. 仅当用户明确要求修复或 `fix=true` 时，派发范围明确的 `developer` 修复。
-6. 修复后重新运行相关测试和安全检查。
-
-## 输出
-
-给出总体通过状态、阻塞问题、非阻塞警告、证据、已运行命令和建议修复顺序。未要求修复时
-不得改动 practice 文件。
+未明确要求修复时不得写文件。获得修复授权后，主 Agent 把精确范围交给 Builder，随后只重跑
+受影响的 Reviewer 门禁。审计不生成 release，也不把静态结果表述为真实部署成功。

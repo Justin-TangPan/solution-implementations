@@ -1,0 +1,361 @@
+{
+    "terraform": {
+        "required_providers": [
+            {
+                "huaweicloud": {
+                    "source": "huawei.com/provider/huaweicloud",
+                    "version": ">=1.70.1"
+                }
+            }
+        ]
+    },
+    "provider": {
+        "huaweicloud": {
+            "cloud": "myhuaweicloud.com",
+            "endpoints": {
+                "iam": "iam.cn-north-4.myhuaweicloud.com",
+                "dns": "dns.cn-north-4.myhuaweicloud.com"
+            },
+            "insecure": true,
+            "region": "cn-north-4",
+            "auth_url": "https://iam.cn-north-4.myhuaweicloud.com/v3"
+        }
+    },
+    "variable": {
+        "dify_version": {
+            "default": "1.8.1",
+            "description": "Dify应用开发平台社区版版本，支持v1.8.1、v1.6.0、v1.4.1、v1.1.3及v0.15.8。默认v1.8.1",
+            "type": "string",
+            "nullable": false,
+            "validation": {
+                "condition": "${contains([\"1.8.1\",\"1.6.0\",\"1.4.1\",\"1.1.3\",\"0.15.8\"], var.dify_version)}",
+                "error_message": "Invalid input, please re-enter."
+            }
+        },
+        "vpc_name": {
+            "default": "dify-llm-application-development-platform-demo",
+            "description": "虚拟私有云名称，该模板使用新建VPC，不允许重名。取值范围：1-54个字符，支持中文、英文字母、数字、_（下划线）、-（中划线）、.（点）。默认：dify-llm-application-development-platform-demo。",
+            "type": "string",
+            "nullable": false
+        },
+        "security_group_name": {
+            "default": "dify-llm-application-development-platform-demo",
+            "description": "安全组名称，该模板新建安全组，安全组规则请参考部署指南进行配置。取值范围：1-64个字符，支持数字、字母、中文、_(下划线)、-（中划线）、.（点）。默认：dify-llm-application-development-platform-demo。",
+            "type": "string",
+            "nullable": false
+        },
+        "ecs_name": {
+            "default": "dify-llm-application-development-platform-demo",
+            "description": "云服务器实例名称，不支持重名。取值范围：1-64个字符，支持中文、英文字母、数字、_（下划线）、-（中划线）、.（点）。默认：dify-llm-application-development-platform-demo。",
+            "type": "string",
+            "nullable": false
+        },
+        "css_name": {
+            "default": "dify-llm-demo",
+            "description": "css实例名称。取值范围：4-32个字符，必须以字母开头，英文字母、数字、_（下划线）、-（中划线）。默认：dify-llm-demo。",
+            "type": "string",
+            "nullable": false
+        },
+        "ecs_flavor": {
+            "default": "x1.8u.16g",
+            "description": "云服务器实例规格，支持弹性云服务器 ECS及华为云Flexus 云服务器X实例。Flexus 云服务器X实例规格ID命名规则为x1.?u.?g，例如2vCPUs4GiB规格ID为x1.2u.4g，具体华为云Flexus 云服务器X实例规格请参考控制台。弹性云服务器 ECS规格请参考部署指南配置。默认：x1.8u.16g。",
+            "type": "string",
+            "nullable": false,
+            "validation": {
+                "condition": "${length(regexall(\"^([a-z][a-z0-9]{0,3}\\\\.)(x||[1-9][0-9]{0,1}x)large\\\\.[1-9][0-9]{0,1}$|^x1.([1-9]|1[0-6])u.([1-9][0-9]{0,1}|1[0-2][0-8])g$\",var.ecs_flavor))>0}",
+                "error_message": "Invalid input. Please re-enter."
+            }
+        },
+        "embedding_reranker_flavor": {
+            "default": "x1e.16u.16g",
+            "description": "部署Embedding和Reranker模型的云服务器规格，支持弹性云服务器 ECS（含GPU服务器）及华为云Flexus 云服务器X实例。Flexus云服务器X实例规格ID命名规则为x1e.?u.?g，例如4vCPUs4GiB规格ID为x1.4u.4g。建议使用8vCPUs8GiB及以上规格，具体华为云Flexus云服务器X实例规格请参考控制台。弹性云服务器 ECS规格请参考部署指南配置。可替换成GPU加速型获得更高性能。默认值：x1e.16u.16g。",
+            "type": "string",
+            "nullable": false
+        },
+        "ecs_password": {
+            "default": "",
+            "description": "云服务器密码，取值范围：8-26个字符，密码至少包含大写字母、小写字母、数字和特殊字符（!@%^_=+[{}]:,.?）中的三种。管理员账户默认root。",
+            "type": "string",
+            "nullable": false,
+            "sensitive": true
+        },
+        "system_disk_size": {
+            "default": 100,
+            "description": "云服务器系统盘大小，磁盘类型默认为高IO，单位：GB，取值范围为40-1,024，不支持缩盘。默认：100",
+            "type": "number",
+            "nullable": false,
+            "validation": {
+                "condition": "${length(regexall(\"^([4-9][0-9]|[1-9][0-9]{2}|10[01][0-9]|102[0-4]|1024)$\",var.system_disk_size))>0}",
+                "error_message": "Invalid input. Please re-enter."
+            }
+        },
+        "bandwidth_size": {
+            "default": 300,
+            "description": "弹性公网带宽大小，该模板计费方式为按流量计费。单位：Mbit/s，取值范围：1-300Mbit/s。默认：300。",
+            "type": "number",
+            "nullable": false,
+            "validation": {
+                "condition": "${length(regexall(\"^([1-9][0-9]{0,1}|[1-2][0-9]{2}|300)$\",var.bandwidth_size))>0}",
+                "error_message": "Invalid input. Please re-enter."
+            }
+        },
+        "charging_mode": {
+            "default": "postPaid",
+            "description": "云服务器计费模式，默认自动扣费，可选值为：postPaid（按需计费）、prePaid（包年包月）。默认：postPaid。",
+            "type": "string",
+            "nullable": false,
+            "validation": {
+                "condition": "${contains([\"postPaid\",\"prePaid\"], var.charging_mode)}",
+                "error_message": "Invalid input, please re-enter."
+            }
+        },
+        "charging_unit": {
+            "default": "month",
+            "description": "云服务器订购周期类型，仅当charging_mode为prePaid（包年/包月）生效，此时该参数为必填参数。取值范围：month（月），year（年）。默认month。",
+            "type": "string",
+            "nullable": false,
+            "validation": {
+                "condition": "${contains([\"month\",\"year\"], var.charging_unit)}",
+                "error_message": "Invalid input, please re-enter."
+            }
+        },
+        "charging_period": {
+            "default": 1,
+            "description": "云服务器订购周期，仅当charging_mode为prePaid（包年/包月）生效，此时该参数为必填参数。取值范围：charging_unit=month（周期类型为月）时，取值为1-9；charging_unit=year（周期类型为年）时，取值为1-3。默认订购1月。",
+            "type": "number",
+            "nullable": false,
+            "validation": {
+                "condition": "${length(regexall(\"^[1-9]$\",var.charging_period))>0}",
+                "error_message": "Invalid input, please re-enter."
+            }
+        }
+    },
+    "data": {
+        "huaweicloud_images_image": {
+            "Ubuntu": {
+                "most_recent": true,
+                "name": "Ubuntu 22.04 server 64bit",
+                "visibility": "public"
+            }
+        },
+        "huaweicloud_images_images": {
+            "Ubuntu_er": {
+                "name_regex": "Ubuntu.",
+                "flavor_id": "${var.embedding_reranker_flavor}",
+                "visibility": "public",
+                "os": "Ubuntu",
+                "sort_direction": "desc",
+                "architecture": "x86"
+            }
+        },
+        "huaweicloud_availability_zones": {
+            "availability_zones": {
+            }
+        }
+    },
+    "locals": {
+        "multi_az": "${join(\",\", slice(data.huaweicloud_availability_zones.availability_zones.names, 0, 3))}"
+    },
+    "resource": {
+        "huaweicloud_vpc": {
+            "vpc": {
+                "name": "${var.vpc_name}",
+                "cidr": "172.16.0.0/16"
+            }
+        },
+        "huaweicloud_vpc_subnet": {
+            "subnet": {
+                "name": "${var.vpc_name}-subnet",
+                "cidr": "172.16.1.0/24",
+                "gateway_ip": "172.16.1.1",
+                "vpc_id": "${huaweicloud_vpc.vpc.id}"
+            }
+        },
+        "huaweicloud_networking_secgroup": {
+            "secgroup": {
+                "name": "${var.security_group_name}"
+            }
+        },
+        "huaweicloud_networking_secgroup_rule": {
+            "allow_ping": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "允许ping程序测试Flexus云服务器X实例的连通性",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "icmp",
+                "remote_ip_prefix": "0.0.0.0/0"
+            },
+            "dify_HTTP": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "HTTP协议网络端口，允许访问dify应用",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 80,
+                "remote_ip_prefix": "0.0.0.0/0"
+            },
+            "dify_HTTPS": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "HTTPS协议网络端口，允许访问dify应用",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 443,
+                "remote_ip_prefix": "0.0.0.0/0"
+            },
+            "ollama": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "Ollama API默认端口",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 11434,
+                "remote_ip_prefix": "0.0.0.0/0"
+            },
+            "xinference": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "xinference 服务暴露端口",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 9997,
+                "remote_ip_prefix": "0.0.0.0/0"
+            },
+            "cloud_shell": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "Cloud Shell默认端口，通过CLoud shell登录服务器",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 22,
+                "remote_ip_prefix": "121.36.59.153/32"
+            },
+            "digital_human": {
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "description": "数字人服务默认端口",
+                "direction": "ingress",
+                "ethertype": "IPv4",
+                "protocol": "tcp",
+                "ports": 8000,
+                "remote_ip_prefix": "0.0.0.0/0"
+            }
+        },
+        "huaweicloud_vpc_eip": {
+            "vpc_eip": {
+                "name": "${var.vpc_name}-dify",
+                "bandwidth": {
+                    "name": "${var.vpc_name}-bandwidth",
+                    "share_type": "PER",
+                    "size": "${var.bandwidth_size}",
+                    "charge_mode": "traffic"
+                },
+                "publicip": {
+                    "type": "5_bgp"
+                },
+                "charging_mode": "postPaid"
+            },
+            "eip": {
+                "name": "${var.vpc_name}-er",
+                "bandwidth": {
+                    "name": "${var.vpc_name}-bandwidth",
+                    "share_type": "PER",
+                    "size": "${var.bandwidth_size}",
+                    "charge_mode": "traffic"
+                },
+                "publicip": {
+                    "type": "5_bgp"
+                },
+                "charging_mode": "postPaid"
+            }
+        },
+        "huaweicloud_compute_instance": {
+            "compute_instance_dify": {
+                "name": "${var.ecs_name}",
+                "image_id": "${data.huaweicloud_images_image.Ubuntu.id}",
+                "flavor_id": "${var.ecs_flavor}",
+                "security_group_ids": [
+                    "${huaweicloud_networking_secgroup.secgroup.id}"
+                ],
+                "system_disk_type": "SAS",
+                "system_disk_size": "${var.system_disk_size}",
+                "admin_pass": "${var.ecs_password}",
+                "delete_disks_on_termination": true,
+                "network": {
+                    "uuid": "${huaweicloud_vpc_subnet.subnet.id}"
+                },
+                "agent_list": "hss,ces",
+                "eip_id": "${huaweicloud_vpc_eip.vpc_eip.id}",
+                "charging_mode": "${var.charging_mode}",
+                "period_unit": "${var.charging_unit}",
+                "period": "${var.charging_period}",
+                "tags": {
+                    "app": "Dify"
+                },
+                "user_data": "#!/bin/bash\necho 'root:${var.ecs_password}' | chpasswd\nwget -P /home/ https://documentation-samples.obs.cn-north-4.myhuaweicloud.com/solution-as-code-publicbucket/solution-as-code-moudle/building-a-dify-llm-application-development-platform/userdata/dify_search_css.sh\nbash /home/dify_search_css.sh ${var.dify_version} ${huaweicloud_css_cluster.css.vpcep_ip}\nif [ -f /dify/docker/.env ]; then\n  sed -i 's/^VECTOR_STORE=.*/VECTOR_STORE=elasticsearch/' /dify/docker/.env\n  grep -q '^ELASTICSEARCH_HOST=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_HOST=.*/ELASTICSEARCH_HOST=${huaweicloud_css_cluster.css.vpcep_ip}/' /dify/docker/.env || echo 'ELASTICSEARCH_HOST=${huaweicloud_css_cluster.css.vpcep_ip}' >> /dify/docker/.env\n  grep -q '^ELASTICSEARCH_PORT=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_PORT=.*/ELASTICSEARCH_PORT=9200/' /dify/docker/.env || echo 'ELASTICSEARCH_PORT=9200' >> /dify/docker/.env\n  grep -q '^ELASTICSEARCH_USERNAME=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_USERNAME=.*/ELASTICSEARCH_USERNAME=/' /dify/docker/.env || echo 'ELASTICSEARCH_USERNAME=' >> /dify/docker/.env\n  grep -q '^ELASTICSEARCH_PASSWORD=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_PASSWORD=.*/ELASTICSEARCH_PASSWORD=/' /dify/docker/.env || echo 'ELASTICSEARCH_PASSWORD=' >> /dify/docker/.env\n  grep -q '^ELASTICSEARCH_USE_CLOUD=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_USE_CLOUD=.*/ELASTICSEARCH_USE_CLOUD=false/' /dify/docker/.env || echo 'ELASTICSEARCH_USE_CLOUD=false' >> /dify/docker/.env\n  grep -q '^ELASTICSEARCH_VERIFY_CERTS=' /dify/docker/.env && sed -i 's/^ELASTICSEARCH_VERIFY_CERTS=.*/ELASTICSEARCH_VERIFY_CERTS=false/' /dify/docker/.env || echo 'ELASTICSEARCH_VERIFY_CERTS=false' >> /dify/docker/.env\n  cd /dify/docker && docker-compose up -d\nfi\nrm -rf /home/dify_search_css.sh"
+            },
+            "compute_instance_er": {
+                "name": "deploying-embedding-and-reranker-models-demo",
+                "image_id": "${data.huaweicloud_images_images.Ubuntu_er.images[0].id}",
+                "flavor_id": "${var.embedding_reranker_flavor}",
+                "security_group_ids": [
+                    "${huaweicloud_networking_secgroup.secgroup.id}"
+                ],
+                "system_disk_type": "GPSSD",
+                "system_disk_size": "${var.system_disk_size}",
+                "admin_pass": "${var.ecs_password}",
+                "delete_disks_on_termination": true,
+                "network": {
+                    "uuid": "${huaweicloud_vpc_subnet.subnet.id}"
+                },
+                "agent_list": "hss,ces",
+                "eip_id": "${huaweicloud_vpc_eip.eip.id}",
+                "charging_mode": "${var.charging_mode}",
+                "period_unit": "${var.charging_unit}",
+                "period": "${var.charging_period}",
+                "tags": {
+                    "app": "embedding&reranker-dify"
+                },
+                "user_data": "#!/bin/bash\necho 'root:${var.ecs_password}' | chpasswd\nwget -P /home/ https://documentation-samples.obs.cn-north-4.myhuaweicloud.com/solution-as-code-publicbucket/solution-as-code-moudle/deploying-embedding-and-reranker-models/userdata/install-model.sh\nbash /home/install-model.sh &> /home/install-model.log\nrm -rf /home/install-model.sh"
+            }
+        },
+        "huaweicloud_css_cluster": {
+            "css": {
+                "name": "${var.css_name}",
+                "engine_type": "elasticsearch",
+                "engine_version": "7.10.2",
+                "ess_node_config": {
+                    "flavor": "ess.spec-4u8g",
+                    "instance_number": 1,
+                    "volume": {
+                        "volume_type": "ULTRAHIGH",
+                        "size": 40
+                    }
+                },
+                "availability_zone": "${data.huaweicloud_availability_zones.availability_zones.names[0]}",
+                "vpc_id": "${huaweicloud_vpc.vpc.id}",
+                "subnet_id": "${huaweicloud_vpc_subnet.subnet.id}",
+                "security_group_id": "${huaweicloud_networking_secgroup.secgroup.id}",
+                "vpcep_endpoint": {
+                    "endpoint_with_dns_name": true
+                },
+                "security_mode": false,
+                "charging_mode": "${var.charging_mode}",
+                "period_unit": "${var.charging_unit}",
+                "period": "${var.charging_period}",
+                "lifecycle": {
+                    "ignore_changes": [
+                        "availability_zone"
+                    ]
+                }
+            }
+        }
+    },
+    "output": {
+        "说明": {
+            "depends_on": [
+                "huaweicloud_vpc_eip.vpc_eip"
+            ],
+            "value": "等待应用下载及部署完毕（约20分钟）后，请在浏览器上输入网址：http://${huaweicloud_vpc_eip.vpc_eip.address}/，即可访问Dify-LLM应用开发平台。"
+        }
+    }
+}

@@ -1,8 +1,8 @@
 name = "sac_security"
-description = "Read-only SAC security reviewer for secrets, network exposure, containers, data handling, dependencies, and local delivery artifacts."
+description = "Deprecated read-only security compatibility alias for sac_reviewer and sac-quality."
 model = "gpt-5.4-mini"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = """
-Act as the SAC security reviewer. Before working, read AGENTS.md, .codex/agents/security.md, skills/sac-project-rules/SKILL.md, and skills/sac-security/SKILL.md completely. Do not load the complete RFS skill by default. Stay read-only and report only evidence-backed findings. Never print a suspected secret in full. Return the common handoff fields required by AGENTS.md plus passed, findings, scanned_scope, and summary.
+Compatibility mode only. Act as sac_reviewer by reading AGENTS.md, .codex/agents/reviewer.md, skills/sac-project/SKILL.md, and skills/sac-quality/SKILL.md. Stay read-only, never expose suspected secrets in full, and preserve legacy security finding fields requested by the caller. Do not treat this alias as an independent role.
 """

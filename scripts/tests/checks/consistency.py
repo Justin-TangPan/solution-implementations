@@ -1,7 +1,7 @@
 """
 跨方案一致性检查
 ===============
-- 目录结构标准化（terraform/, scripts/ 子目录）
+- 目录结构标准化（Terraform 直接位于实例目录，scripts/ 可选）
 - .extension 文件检查
 """
 
@@ -15,7 +15,7 @@ PROJECT_CONFIG = ROOT / "project.config.json"
 
 def load_quality_gate() -> dict:
     defaults = {
-        "require_terraform_dir": True,
+        "require_terraform_dir": False,
         "require_scripts_dir": False,
         "require_extension": False,
         "allow_inline_install_script": True,
@@ -57,10 +57,8 @@ def run(practice_path: Path, entry: dict) -> list:
     # ── 1. 子目录检查 ──
     required_dirs = []
     optional_dirs = []
-    if quality_gate["require_terraform_dir"]:
-        required_dirs.append("terraform")
-    else:
-        optional_dirs.append("terraform")
+    if (practice_path / "terraform").exists():
+        results.append(CheckResult("consistency", False, "ERROR", "不得使用冗余的 terraform/ 子目录"))
     if quality_gate["require_scripts_dir"]:
         required_dirs.append("scripts")
     else:

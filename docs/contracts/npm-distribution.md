@@ -8,10 +8,12 @@
 - executable: `sac`
 - commands: `init`, `install`, `update`, `list`, `doctor`
 - manifest: `.sac/manifest.json`
-- discoverable Skills: `.codex/skills/` with a root `skills/` compatibility mirror
+- canonical Skills: root `skills/`; Codex discovery: `.agents/skills/`; Claude discovery wrappers: `.claude/skills/`
 - isolated document/test tooling: `.sac/tooling/` (invoked with `PYTHONPATH=.sac/tooling`)
-- Codex custom-agent names: `sac_architect`, `sac_developer`, `sac_tester`, `sac_security`,
-  `sac_documenter`, `sac_delivery`
+- capability roles: `architect`, `builder`, `reviewer`
+- deprecated Codex role aliases: `sac_developer`, `sac_tester`, `sac_security`, `sac_documenter`, `sac_delivery`
+- Claude Code native assets: `.claude/CLAUDE.md`, `.claude/skills/`, `.claude/agents/*.md`
+- Claude legacy compatibility assets: `.claude/agents/*.json`, `.claude/workflows/*.js`
 
 Renaming or removing one of these requires a major npm version or a documented compatibility alias and
 deprecation period.
@@ -22,7 +24,7 @@ deprecation period.
 - `package.json.sac.manifestSchemaVersion` versions the installed manifest structure.
 - `package.json.sac.contentVersion` versions bundled Skills, Agent contracts, and practices.
 - Terraform candidate versions and SAC four-level cloud-test versions remain governed separately by
-  `sac-project-rules`.
+  `sac-project`.
 
 ## File ownership
 
@@ -41,6 +43,14 @@ must have upgrade tests from the oldest supported version.
 
 CLI file operations must be idempotent. Existing user content outside SAC marker blocks must survive repeated
 `init` and `update` operations. Conflicts must be visible and non-destructive.
+
+`sac install codex` and `sac install claude` each install the selected Adapter plus shared Core assets.
+`sac install all` and `sac init` install both. `AGENTS.md` and `.claude/CLAUDE.md` are merge-block files;
+modified managed files continue to produce adjacent `.sac-new` candidates.
+
+Updating the `skills` component migrates managed Codex discovery files from the legacy
+`.codex/skills/` location to `.agents/skills/`. Unmodified legacy files are removed by stale-file pruning;
+modified files are preserved but no longer managed.
 
 ## Publication gate
 

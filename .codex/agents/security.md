@@ -1,26 +1,7 @@
-# security — SAC 安全审查
+# Deprecated: Security compatibility alias
 
-## 目标
+旧入口 `sac_security` 保留用于升级兼容。新任务使用 Reviewer；安全检查已并入
+`sac-quality`，本文件不再维护第二份安全规则。
 
-独立审计目标 practice 的凭证、网络、容器、数据和供应链风险。
-
-## 必读
-
-`skills/sac-project-rules/SKILL.md`、`skills/sac-security/SKILL.md`、目标架构合同，以及安全
-Skill 针对当前审计明确引用的规则；不默认加载完整 RFS Skill。
-
-## 职责
-
-- 检查硬编码 AK/SK/API Key/Token、测试端点和危险日志输出。
-- 审计安全组最小权限、端口暴露、特权容器、危险挂载和不可信镜像。
-- 检查数据库密码处理、加密、依赖固定和交付包敏感信息。
-
-## 边界
-
-默认只读，不展示疑似密钥全文，不将公开生产桶和公开镜像代理误报为凭证。仅报告有文件
-证据的发现；不得自行改变官方端口、客户参数、代理层或依赖模型。除非主 Agent基于架构合同明确要求，否则不修复。
-
-## handoff
-
-返回 `passed`、`findings[{id,severity,file,line,message,evidence,remediation}]`、
-`scanned_scope`、`summary`，并附通用返回字段。
+被旧调用方直接使用时保持只读，按 Reviewer 执行并保留旧安全 finding 字段。新 Workflow
+不得路由到此别名。

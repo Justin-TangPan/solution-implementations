@@ -11,15 +11,17 @@ Scripts are classified by role before they are used in release automation.
 - `scripts/generate_extension.py`: extension generation helper.
 - `scripts/validate_template.py`: template validation helper.
 
-## Experimental
+## General development tools
 
-- `scripts/gen-practices-index.mjs`: web visualization catalog helper.
-- Web-related scripts must not define formal release state.
+- `scripts/gen-practices-index.mjs`: generates the auxiliary Web catalog from `project.config.json` and
+  `practices/`; it never defines formal release state.
 
-## Archive Candidates
+## Archived historical scripts
 
-Scripts with hard-coded absolute local paths, one-off DOCX generation logic, or a single practice name are archive candidates. They should be moved under `scripts/archive/` or rewritten before being used in formal automation.
+Confirmed one-off scripts live under `scripts/archive/`. Formal workflows and Agents must not import, scan,
+or execute that directory. Each archive directory documents the original purpose, replacement, and removal
+stage.
 
-Examples currently matching this category include DOCX title fixers and one-off LiteLLM/Supabase helpers.
+Scripts with uncertain compatibility remain in place until their callers are confirmed.
 
 Legacy external-publication helpers are local developer utilities and are outside the formal workflow and delivery package.

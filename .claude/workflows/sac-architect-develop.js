@@ -1,5 +1,8 @@
 export const meta = {
   name: 'sac-architect-develop',
+  status: 'deprecated',
+  runtime: 'legacy-custom-workflow-dsl',
+  replacement: 'Claude native architect -> builder subagent flow',
   description: 'SAC 架构+开发：快速原型，跳过测试/安全/文档/交付，架构师设计后直接开发',
   phases: [
     { title: 'Architect', detail: '方案设计' },
@@ -9,6 +12,7 @@ export const meta = {
 
 const PROJECT = args.project
 const TARGETS = args.regions || []
+const VARIANTS = args.variants || []
 const DESCRIPTION = args.description
 const CONFIRMED_INPUTS = args.confirmed_inputs || null
 
@@ -37,6 +41,7 @@ const architectResult = await agent({
   schema: {
     type: 'object',
     properties: {
+      status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
       architecture: { type: 'string' },
       system_assessment: { type: 'string' },
       initial_solution: { type: 'string' },
@@ -55,7 +60,7 @@ const architectResult = await agent({
       allowed_artifacts: { type: 'array' },
       deviations: { type: 'array' },
     },
-    required: ['architecture', 'system_assessment', 'initial_solution', 'user_inputs_required', 'decisions', 'variables', 'rules_read', 'reference_templates', 'fixed_values', 'public_endpoints', 'allowed_artifacts', 'deviations'],
+    required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'architecture', 'system_assessment', 'initial_solution', 'user_inputs_required', 'decisions', 'variables', 'rules_read', 'reference_templates', 'fixed_values', 'public_endpoints', 'allowed_artifacts', 'deviations'],
   },
 })
 
@@ -68,10 +73,11 @@ if (!CONFIRMED_INPUTS || !TARGETS.length) {
   }
 }
 
-const targetDetails = TARGETS.map((target) => {
+const targetDetails = TARGETS.flatMap((target) => {
   const match = /^(cn|intl)\/([^/]+)$/.exec(target)
   if (!match) throw new Error(`Invalid target "${target}"; expected site/region, for example cn/cn-north-4`)
-  return { target, site: match[1], region: match[2] }
+  const variants = VARIANTS.length ? VARIANTS : [null]
+  return variants.map(variant => ({ target: variant ? `${target}/${variant}` : target, site: match[1], region: match[2], variant }))
 })
 
 if (architectResult.deviations.some(item => item.requires_user_confirmation && !item.confirmed_by_user)) {
@@ -82,18 +88,16 @@ if (architectResult.deviations.some(item => item.requires_user_confirmation && !
 phase('Develop')
 const devResults = await pipeline(
   targetDetails,
-  async ({ target, site, region }) => {
+  async ({ target, site, region, variant }) => {
     const is_cn = site === 'cn'
     const result = await agent({
       label: `dev:${target}`,
       agentType: 'sac-developer',
       prompt: `## 项目上下文
-项目：${PROJECT}，站点：${site}，Region：${region}
+    项目：${PROJECT}，站点：${site}，Region：${region}，Variant：${variant || 'none'}
 ${is_cn ? '源类型：国内（华为云镜像、PyPI镜像）' : '源类型：海外（官方源）'}
 
-	按 sac-project-rules 的 site/region/variant 目录模型，在 practices/${PROJECT}/ 下创建对应文件：
-	1. <site>/<region>/<variant>/terraform/deploying-${PROJECT}.tf
-	2. <site>/<region>/<variant>/.extension（当前质量门禁可选）
+		从 assets/templates/hermes_agent_inline.tf 基线开始，按 sac-project-rules 的 site/region[/variant] 目录模型创建 deploying-${PROJECT}.tf 和可选 .extension；不创建 terraform/ 包装目录。
 	安装逻辑、Docker Compose 和健康检查均内联到 Terraform user_data，不创建外部安装脚本。
 
 决策：${JSON.stringify(architectResult.decisions)}
@@ -104,11 +108,14 @@ ${is_cn ? '源类型：国内（华为云镜像、PyPI镜像）' : '源类型：
 禁止增加合同外变量、端口、代理层、requirements/lock 或外部下载。`,
       schema: {
         type: 'object',
-        properties: { files_created: { type: 'array', items: { type: 'string' } } },
-        required: ['files_created'],
+        properties: {
+          status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
+          site: { type: 'string' }, region: { type: 'string' }, variant: { type: ['string', 'null'] }, files_created: { type: 'array', items: { type: 'string' } }, validation_notes: { type: 'array' },
+        },
+        required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'site', 'region', 'variant', 'files_created', 'validation_notes'],
       },
     })
-    return { target, site, region, ...result }
+    return { target, site, region, variant, ...result }
   },
 )
 

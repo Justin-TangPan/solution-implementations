@@ -1,5 +1,8 @@
 {
   "name": "sac-security",
+  "status": "deprecated",
+  "format": "legacy-custom-agent-json",
+  "replacement": ".claude/agents/reviewer.md",
   "description": "SAC 安全审查 Agent — 安全审计与合规检查",
   "roles": [
     "凭证泄露检查（AK/SK/API Key/Token 硬编码）",
@@ -23,7 +26,8 @@
     "凭证泄露检查结果",
     "安全组规则建议（最小权限）",
     "端口暴露风险评估",
-    "修复建议（分级）"
+    "带 evidence 和 remediation 的修复建议（分级）",
+    "scanned_scope 与通用 handoff：status、summary、files_changed、checks_run、issues、handoff"
   ],
   "rules": [
     "默认只读，只报告风险",

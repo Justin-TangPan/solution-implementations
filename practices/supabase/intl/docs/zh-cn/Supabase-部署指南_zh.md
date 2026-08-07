@@ -12,7 +12,7 @@
 
 ### 1.1 应用场景
 
-本方案在华为云 ECS 实例上部署 Supabase。候选模板在官方 commit `00ecb5305965ff85e1b5757e34a8eb5eb787f6f6` 检出完整 `docker/` 目录，并使用官方 `docker-compose.yml` 和 `run.sh`。它提供 PostgreSQL、用户认证、REST/GraphQL API、实时订阅、文件存储、Edge Functions 和 Web Dashboard。
+本方案在华为云 ECS 实例上部署 Supabase `v1.26.07`。候选模板在官方 commit `949a57d2854b7fcadc0d621cb7fffa167506d581` 检出完整 `docker/` 目录，并使用官方 `docker-compose.yml` 和 `run.sh`。它提供 PostgreSQL、用户认证、REST/GraphQL API、实时订阅、文件存储、Edge Functions 和 Web Dashboard。
 
 典型应用场景包括：
 
@@ -164,8 +164,8 @@ Kong (API Gateway) ← 统一入口 :8000
 | solution_name | 解决方案名称，4-24个字符，支持小写字母、数字、-（中划线），必须以小写字母开头 | supabase |
 | ecs_flavor | 云服务器实例规格，c7n.2xlarge.2（8vCPUs 16GiB）及以上推荐，请根据目标区域可用规格调整 | c7n.2xlarge.2 |
 | ecs_password | 云服务器密码，8-26位，至少包含大写字母、小写字母、数字和特殊字符中的三种 | / |
-| db_password | PostgreSQL 数据库密码，模板不限制字符类型并支持特殊字符；请使用高强度密码 | / |
-| system_disk_size | 系统盘大小（GB），高IO类型，取值范围：40-1024，Supabase建议100GB起步 | 100 |
+| db_password | PostgreSQL 数据库密码，8-24个字符，支持字母、数字和特殊字符（`~!^*-=_+,`），不支持 `@` | / |
+| system_disk_size | 系统盘大小（GB），通用型SSD，取值范围：40-1024，Supabase建议100GB起步 | 100 |
 | bandwidth_size | 弹性公网带宽（Mbit/s），按流量计费，取值范围：1-300 | 300 |
 | charging_mode | 计费模式：postPaid（按需计费）或 prePaid（包年包月） | postPaid |
 | charging_unit | 订购周期类型：month（月）或 year（年），仅 prePaid 模式生效 | month |
@@ -327,7 +327,7 @@ sh run.sh start
 
 - [Supabase 官方文档](https://supabase.com/docs)
 - [Supabase GitHub](https://github.com/supabase/supabase)
-- [固定版本的官方 Docker 部署目录](https://github.com/supabase/supabase/tree/00ecb5305965ff85e1b5757e34a8eb5eb787f6f6/docker)
+- [固定版本的官方 Docker 部署目录（v1.26.07）](https://github.com/supabase/supabase/tree/949a57d2854b7fcadc0d621cb7fffa167506d581/docker)
 - [Supabase 自托管指南](https://supabase.com/docs/guides/self-hosting/docker)
 - [华为云 RFS](https://support.huaweicloud.com/intl/zh-cn/rfs/)
 

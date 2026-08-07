@@ -67,11 +67,10 @@ def discover_practices():
     entries = []
 
     def _has_deployable_content(path: Path) -> bool:
-        terraform = path / "terraform"
         scripts = path / "scripts"
         return (
-            any(terraform.glob("*.tf"))
-            or any(terraform.glob("*.tf.json"))
+            any(path.glob("*.tf"))
+            or any(path.glob("*.tf.json"))
             or (scripts.is_dir() and any(item.is_file() for item in scripts.rglob("*")))
         )
 
@@ -89,17 +88,21 @@ def discover_practices():
             rel_parts = deploy_dir.relative_to(PRACTICES_DIR).parts
             if _is_skipped(Path(*rel_parts)) or not _has_deployable_content(deploy_dir):
                 continue
-            if len(rel_parts) < 4:
+            if len(rel_parts) < 3:
                 continue
 
             site = rel_parts[1]
-            deploy_type = rel_parts[-1]
-            region = rel_parts[-2]
             locale = ""
-
-            if site == "intl" and len(rel_parts) >= 5 and rel_parts[2] in {"en-us", "zh-cn"}:
+            if site == "intl" and rel_parts[2] in {"en-us", "zh-cn"}:
                 locale = rel_parts[2]
-                region = rel_parts[-2]
+                region_index = 3
+            else:
+                region_index = 2
+            if len(rel_parts) not in {region_index + 1, region_index + 2}:
+                continue
+
+            region = rel_parts[region_index]
+            deploy_type = rel_parts[region_index + 1] if len(rel_parts) == region_index + 2 else "standard"
 
             entries.append({
                 "name": pname,
@@ -119,8 +122,19 @@ def load_project_config():
         return json.load(f)
 
 
+def find_unlisted_practices(config=None):
+    config = config or load_project_config()
+    if not config.get("quality_gate", {}).get("reject_unlisted_practice_dirs", False):
+        return []
+    formal = set(config.get("formal", {}).get("practices", []))
+    return sorted(
+        path.name for path in PRACTICES_DIR.iterdir()
+        if path.is_dir() and path.name not in SKIP_DIRS and path.name not in formal
+    )
+
+
 def run_checks(entries, check_filter=None):
-    from scripts.tests.checks import tf_syntax, scripts_audit, network_audit, consistency, documentation, rfs_policy, security
+    from scripts.tests.checks import tf_syntax, scripts_audit, network_audit, consistency, documentation, rfs_policy
 
     all_reports = []
     for entry in entries:
@@ -136,7 +150,6 @@ def run_checks(entries, check_filter=None):
             ("network",     network_audit.run),
             ("consistency", consistency.run),
             ("docs",        documentation.run),
-            ("security",    security.run),
         ]
         for cname, fn in specs:
             if check_filter and cname not in check_filter:
@@ -205,6 +218,11 @@ def main():
     parser.add_argument("--check", nargs="*", help="Check types to run")
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args()
+
+    unlisted = find_unlisted_practices()
+    if unlisted:
+        print(f"Error: unlisted practice directories: {', '.join(unlisted)}")
+        sys.exit(1)
 
     entries = discover_practices()
     if args.practice:

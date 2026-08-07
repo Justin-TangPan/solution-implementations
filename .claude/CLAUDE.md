@@ -1,35 +1,51 @@
-# SAC 项目规范
+<!-- SAC:START -->
+# SAC project instructions
 
-> 规则权威来源见 `skills/sac-project-rules/SKILL.md`（项目规则总纲）和 `skills/sac-rfs-practices/SKILL.md`（RFS 开发规范）。
-> 当前正式范围见 `docs/project-state.md` 和 `project.config.json`。
-> 以下为高频触发规则摘要，确保每次会话都能命中。
+This repository is an engineering package for producing and validating Solution Practices. It does not call
+language models, provide an Agent Runtime, or deploy real cloud resources automatically. Terraform templates
+and their verified documentation are the primary deliverables.
 
-## 当前版本范围
+## Sources of truth
 
-- 正式 practice 清单只以 `project.config.json` 为准，不在本地摘要重复维护。
-- `web/` 是正式的只读可视化产品，但不是规则、Practice 范围或交付状态的权威来源。
-- `.claude/agents/` 和 `.claude/workflows/` 是本地协作配置，不作为公开交付包必要组成。
-- 历史半成品 practice 的旧文档、旧脚本或旧 catalog 记录不构成正式交付依据。
-- 所有修改批次必须记录到本地 `.var/log/internal-changelog.md`，使用时间戳 + 四级版本号；`.var/` 不提交、不上传远端。
+- `project.config.json`: formal Practice scope, project configuration, capability roles, and supported adapters.
+- `skills/<name>/SKILL.md`: canonical SAC business rules. Files under `.claude/skills/` are discovery wrappers only.
+- `docs/project-state.md`: maintained status narrative; do not maintain formal scope there by hand.
+- `web/`: read-only presentation; never use it as a release or quality authority.
 
-## 本地开发环境
+## Task routing
 
-- SAC Python 开发统一使用仓库根目录 `.venv-sac`，由 `uv venv .venv-sac --python 3.11` 创建。
-- 后续缺失 Python 依赖时安装到该环境：`uv pip install --python .venv-sac/bin/python <package>`。
-- 运行 Python 工具优先使用 `.venv-sac/bin/python`，避免污染系统 Python 或临时 `/tmp` 环境。
+- Routine Terraform, variable, output, or initialization changes: use Builder with `sac-project` and
+  `sac-implementation`. A Terraform field description is implementation work, not documentation work.
+- Deployment-guide, README, parameter-table, or other document-file changes: use Builder and load
+  `sac-documentation`; load implementation only when repository facts must be checked.
+- Security, validation, architecture consistency, diff, or release-readiness review: use Reviewer with
+  `sac-project` and `sac-quality`. Never select compatibility names such as `sac-security` or `sac-testing`
+  for a new request.
+- New Practices, upstream research, topology changes, HA, database, storage, or network design: use Architect,
+  then Builder and Reviewer when implementation is requested. Do not add Optional `sac-deep-search` unless
+  the request genuinely requires disputed, cross-domain, multi-source research.
+- Small tasks do not require three subagents. Use the smallest sufficient role sequence.
 
-## 项目命名
+Claude Code discovers the five core wrappers in `.claude/skills/`. Each wrapper points to the matching
+canonical `skills/<name>/SKILL.md`; read only the Skill relevant to the current task. Optional and compatibility
+Skills are not preloaded.
 
-SAC = **Solution Practices**（解决方案实践）→ 详见 `sac-project-rules` §1
+## Working rules
 
-## 版本管理
+- Inspect `git status --short` first and preserve existing user changes.
+- Make the smallest change that satisfies the frozen architecture contract.
+- Do not change Terraform resource behavior, defaults, public exposure, or dependencies without explicit scope.
+- Keep static validation distinct from user-provided real-cloud test evidence.
+- Never write credentials, private endpoints, or secrets to source, output, or logs.
+- External publishing, Git writes, local delivery packaging, and real cloud changes require separate authorization.
+- Record each modification batch in `.var/log/internal-changelog.md`; `.var/` is local-only.
 
-提交前检查 CHANGELOG → 详见 `sac-project-rules` §13
+## Checks
 
-## 海外 ECS 规格（intl）
+- Node tests: `npm test`
+- Python quality gate: `.venv-sac/bin/python -m scripts.tests.runner`
+- Web: `npm --prefix web run lint` and `npm --prefix web run build`
+- Package contents: `npm pack --dry-run`
 
-`ecs_flavor` 默认 `c7n.2xlarge.2`，禁止 x1 系列 → 详见 `sac-rfs-practices` Rule 9
-
-## 国际站双语言（intl）
-
-`en-us/` + `zh-cn/` 必须同时存在，逻辑一致仅翻译，新增区域同步创建 → 详见 `sac-project-rules` §3.4
+Archived scripts under `scripts/archive/` are not formal workflow inputs.
+<!-- SAC:END -->

@@ -1,18 +1,13 @@
-# architect-develop — SAC Codex 快速原型
+# architect-develop — Architecture-changing Maintenance
 
-## 输入
+兼容原工作流名；用于原型或会改变拓扑、网络、数据库、存储、云资源或高可用的维护任务：
 
-`project`、`regions`（`site/region`，例如 `cn/cn-north-4`）、`description`；可选 `variants`。
+```text
+Architect → Builder → Reviewer
+```
 
-## 阶段
+Architect 只读形成架构合同；主 Agent 确认关键输入后交给 Builder 做最小实现；Reviewer 运行
+静态质量、安全和合同一致性检查。发现阻断问题时回到 Builder 修复并复核。
 
-1. 主 Agent 派发只读 `architect`，形成 `system_assessment`、`initial_solution`、用户待确认项和证据。
-2. 主 Agent 向用户呈现初版方案，确认站点、Region、standard/ha、模板与安装策略、运行方式、公网入口和产品特有外部依赖。
-3. 主 Agent 冻结完整 `architecture_contract`；必要确认缺失时停止，不派发实现。
-4. 将完整合同下发给按区域/variant 分配的 `developer`，每个 Agent只拥有一个不重叠目录。
-5. 主 Agent运行基础静态检查并检查 diff。
-
-## 范围
-
-本流程不包含正式安全审计、完整文档和 release 打包。最终必须明确标注“原型”，列出未执行的
-门禁，不能宣称已可正式发布。
+本流程不自动打包、发布或创建云资源。原型必须列出文档、完整门禁和真实云测中未执行的项，
+不得表述为正式发布或云上验证完成。

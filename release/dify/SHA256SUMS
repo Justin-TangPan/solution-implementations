@@ -1,0 +1,6 @@
+ef2b0e6dd1438766eac37fbf7fb5987d0ca656e4cdf16092b158fea5c51a95e3  cn/cn-north-4/css/terraform/deploying-dify-css.tf.json
+a0ba645a620b6dd10ab0a848ed8f42c758beebc2af155b5f54966c787a2c5f1a  cn/cn-north-4/ha/terraform/deploying-dify-ha.tf
+0a05764757d8a47d80a19b30e8bba7695c51ca808d0dabd62cd36b76a17130f7  cn/cn-north-4/standard/terraform/deploying-dify.tf.json
+3f5991447c3467c2e68c50f63ff6deee4ef4c4121663ea4a53991eca9544a4fc  cn/docs/Dify-方案详情_zh.md
+d8787fc33e6e9f71cf8680103cd19bc65b013f4b4c0ec36255ac85563680c4f3  cn/docs/Dify-部署指南_zh.md
+83bc0b8b6269eacbc70c0d1175983887f87aa88b17b0a753aa5fa94e9bd67b23  dify-v0.10.0.zip

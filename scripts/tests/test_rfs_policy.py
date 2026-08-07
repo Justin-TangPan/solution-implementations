@@ -32,8 +32,8 @@ class RfsPolicyTest(unittest.TestCase):
     def run_policy(self, text=VALID):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "openjiuwen/cn/cn-north-4/jiuwenswarm"
-            (root / "terraform").mkdir(parents=True)
-            (root / "terraform/deploying-jiuwenswarm_v3.tf").write_text(text)
+            root.mkdir(parents=True)
+            (root / "deploying-jiuwenswarm_v3.tf").write_text(text)
             config = {"quality_gate": {"practice_policies": {"openjiuwen/cn/cn-north-4/jiuwenswarm": POLICY}}}
             with patch.object(rfs_policy, "load_project_config", return_value=config):
                 return rfs_policy.run(root, {})

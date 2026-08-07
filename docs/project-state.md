@@ -1,29 +1,30 @@
 # Project State
 
-This document records the current repository scope. It should be updated when a practice becomes formal, is removed, or an experimental area graduates into the release flow.
+This document summarizes repository state without duplicating structured inventories. Authority and field
+ownership are defined in [source-of-truth.md](source-of-truth.md).
 
 ## Current Formal Scope
 
-- Formal practices: `litellm`, `supabase`, `openjiuwen`
-- Formal quality gate: `scripts/tests/`
-- Formal rules: `skills/sac-project-rules/`, `skills/sac-rfs-practices/`
-- Formal workflow skills: `skills/sac-testing/`, `skills/sac-security/`, `skills/sac-documentation/`, `skills/sac-delivery/`
+- Formal practices: `project.config.json` → `formal.practices`
+- Formal verification tools: `scripts/tests/`
+- SAC Core: `skills/sac-project/`, `skills/sac-architecture/`, `skills/sac-implementation/`,
+  `skills/sac-quality/`, `skills/sac-documentation/`
+- Capability roles and supported Coding Agent adapters: `project.config.json` → `agent_capabilities`
 - Formal npm distribution: `package.json`, `bin/sac.js`, `src/`, and `templates/`
-- Formal GitHub visualization source: `web/` (read-only presentation layer; not a release authority)
+- Auxiliary visualization: `web/` (read-only presentation layer; not a release authority)
 - Scope config: `project.config.json`
 
 ## Explicitly Out Of Formal Scope
 
-- `.claude/agents/`, `.claude/workflows/`, `AGENTS.md`, and `.codex/` are local collaboration assets.
+- `AGENTS.md`, `.codex/`, `.claude/CLAUDE.md`, `.claude/skills/`, and `.claude/agents/` are Runtime adapters,
+  not SAC business-rule authorities. Legacy `.claude/workflows/` remains compatibility-only.
 - Historical half-finished practices may still be referenced by old documents, scripts, or catalog data. Those references are not formal unless the practice is listed in `project.config.json`.
 
-## Source-Of-Truth Order
+## Source of Truth
 
-1. `project.config.json` defines current formal scope.
-2. `practices/` contains deployable implementation assets.
-3. `skills/` contains rules and reusable project knowledge.
-4. `scripts/tests/` validates formal practice assets.
-5. `web/` visualizes repository facts and generated snapshots, but it does not define formal delivery state.
+`project.config.json` defines formal scope and project policy. Implementation facts live in `practices/`,
+and executable checks provide validation evidence. The complete precedence order remains owned by
+`skills/sac-project/SKILL.md`; this status page does not restate it.
 
 ## npm Distribution
 
@@ -33,12 +34,13 @@ defined in `docs/contracts/npm-distribution.md`.
 
 ## Data-Source Policy
 
-When generated data conflicts with actual `practices/` contents, prefer the formal scope in `project.config.json` and the filesystem under `practices/`.
+README, Web snapshots, presentation material, and historical scripts are never formal-scope authorities.
 
-When README, web catalog, or historical scripts mention practices that no longer exist, treat them as stale until reconciled.
+`practices/` contains only configured formal projects. Local candidates that have not entered formal scope are
+kept under `.var/candidates/practices/`; empty layout directories and duplicate input archives are excluded.
 
-## Current Quality-Gate Policy
+## Current Template Policy
 
-- `terraform/` is required for a formal deployable instance.
+- Terraform is stored directly in each deployable instance directory; a sole standard deployment uses the Region directory directly.
 - `scripts/` is optional because some practices use fully inline `user_data`.
 - `.extension` is recommended but not currently a hard requirement.

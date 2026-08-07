@@ -59,7 +59,7 @@ def run(practice_path: Path, entry: dict) -> list:
                 deps.setdefault(url, []).append(sh.name)
 
     # 扫描 terraform 文件中的 URL
-    tf_dir = practice_path / "terraform"
+    tf_dir = practice_path
     if tf_dir.exists():
         for tf in tf_dir.glob("*.tf"):
             content = tf.read_text(encoding="utf-8-sig", errors="replace")

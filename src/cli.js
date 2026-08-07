@@ -40,11 +40,11 @@ export async function run(args, { targetDir = process.cwd() } = {}) {
     return;
   }
   if (command === 'init') {
-    printActions(await executeInstall({ targetDir, components: ['codex', 'skills'], ...options }));
+    printActions(await executeInstall({ targetDir, components: ['codex', 'claude', 'skills'], ...options }));
     return;
   }
   if (command === 'install') {
-    if (subject === 'codex' || subject === 'skills') {
+    if (subject === 'codex' || subject === 'claude' || subject === 'all' || subject === 'skills') {
       printActions(await executeInstall({ targetDir, components: [subject], ...options }));
       return;
     }
@@ -52,14 +52,14 @@ export async function run(args, { targetDir = process.cwd() } = {}) {
       printActions(await executeInstall({ targetDir, components: [], practices: [name], ...options }));
       return;
     }
-    throw new Error('Usage: sac install codex|skills OR sac install practice <name>');
+    throw new Error('Usage: sac install codex|claude|all|skills OR sac install practice <name>');
   }
   if (command === 'update') {
     printActions(await updateInstalled({ targetDir, ...options }));
     return;
   }
   if (command === 'list') {
-    const data = { version: packageVersion, components: ['codex', 'skills'], practices: await availablePractices() };
+    const data = { version: packageVersion, components: ['codex', 'claude', 'skills'], practices: await availablePractices() };
     if (options.json) console.log(JSON.stringify(data, null, 2));
     else {
       console.log(`solution-practices ${data.version}`);

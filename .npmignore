@@ -6,6 +6,14 @@ practices/*
 !practices/supabase/**
 !practices/openjiuwen/
 !practices/openjiuwen/**
+!practices/cognee/
+!practices/cognee/**
+!practices/astrbot/
+!practices/astrbot/**
+!practices/dify/
+!practices/dify/**
+!practices/newapi/
+!practices/newapi/**
 
 # Runtime and local artifacts.
 **/__pycache__/

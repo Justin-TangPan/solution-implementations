@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 遍历 practices/ 目录，生成 practices-index.json 供 web 消费。
-// 结构：practices/<slug>/<site>/<region>/<variant>/  variant ∈ {standard, ha}
+// 结构：practices/<slug>/<site>/<region>[/<variant>]/，单一标准版直接位于 region
 // 输出：web/src/lib/practices-index.json
 //
 // 编辑性字段（score/tier/cost/overview/tagline/category/stars/color）仍由 web/src/lib/data.ts 维护；
@@ -19,6 +19,10 @@ const FORMAL = new Set(JSON.parse(readFileSync(join(ROOT, "project.config.json")
 function dirs(p) {
   if (!existsSync(p)) return [];
   return readdirSync(p).filter(n => statSync(join(p, n)).isDirectory());
+}
+
+function hasTerraform(p) {
+  return existsSync(p) && readdirSync(p).some(n => n.endsWith(".tf") || n.endsWith(".tf.json"));
 }
 
 function readH1(filePath) {
@@ -81,13 +85,11 @@ const practices = slugs.map(slug => {
         const localeRegions = dirs(entryPath).filter(r => r !== "docs");
         for (const r of localeRegions) {
           regions.add(r);
-          const variants = dirs(join(entryPath, r));
-          if (variants.includes("ha")) hasHA = true;
+          if (hasTerraform(join(entryPath, r, "ha"))) hasHA = true;
         }
       } else {
         regions.add(entry);
-        const variants = dirs(entryPath);
-        if (variants.includes("ha")) hasHA = true;
+        if (hasTerraform(join(entryPath, "ha"))) hasHA = true;
       }
     }
   }
@@ -103,7 +105,6 @@ const practices = slugs.map(slug => {
 });
 
 const index = {
-  generated: new Date().toISOString(),
   count: practices.length,
   practices,
 };

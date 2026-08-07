@@ -41,8 +41,19 @@ const profiles: Record<string, ArchitectureProfile> = {
     ], edges: [{ from: "internet", to: "eip", label: "5173" }, { from: "eip", to: "ecs", label: "公网访问" }, { from: "ecs", to: "mysql", label: "元数据" }, { from: "ecs", to: "milvus", label: "向量" }, { from: "ecs", to: "minio", label: "对象" }], variables: ["ecs_password", "ecs_flavor", "bandwidth_size", "vpc_cidr"], fixed: ["官方默认接口 5173", "inline user_data", "禁止 frontend_port 等扩展变量"], endpoints: ["5173 公网入口"], risks: ["单 ECS 多容器依赖，资源规格需在部署前确认"] },
 }
 
-export function getArchitectureProfile(slug: string, variant = "standard"): ArchitectureProfile | undefined {
-  return profiles[`${slug}_${variant}`] ?? profiles[slug]
+export function getArchitectureProfile(slug: string, variant = "standard"): ArchitectureProfile {
+  return profiles[`${slug}_${variant}`] ?? profiles[slug] ?? {
+    slug,
+    variant,
+    title: `${slug} ${variant}`,
+    summary: "当前没有可追溯的人工架构拓扑；请以 Terraform 和架构合同为准。",
+    nodes: [{ id: "unavailable", kind: "待补证据", title: "暂无已验证拓扑", note: "未回退到其他方案的演示数据", zone: "dependency" }],
+    edges: [],
+    variables: [],
+    fixed: [],
+    endpoints: [],
+    risks: ["人工架构展示尚未维护，不代表 Terraform 缺失或云测失败"],
+  }
 }
 
 export function listArchitectureProfiles() { return Object.values(profiles) }

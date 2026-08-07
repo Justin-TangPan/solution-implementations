@@ -1,37 +1,28 @@
-# SAC Codex 多 Agent 编排
+# SAC Codex Adapter
 
-这是 SAC 项目的 Codex 原生协作层。它与 `.claude/` 并存，但不依赖 Claude Code 的
-`Workflow()`、`agent()`、`pipeline()` 或 `parallel()` DSL。
-
-Codex 的执行入口是仓库根目录 `AGENTS.md`。主 Agent 根据用户意图选择工作流，通过
-子 Agent 协作工具调度 `.codex/agents/` 中的角色，并按 `.codex/workflows/` 中的依赖、
-门禁和交接协议推进。
-
-## 目录
+`.codex/` 只把共享的 SAC Core 映射到 Codex 的角色与 Task Flow，不保存第二份业务规则。
+Codex 从根 `AGENTS.md` 获取轻量路由，从 `.agents/skills/` 按需发现根 `skills/` 的权威内容。
 
 ```text
-AGENTS.md                 # Codex 自动读取的项目级调度规则
+AGENTS.md
+.agents/skills/          # SAC Core 的 Codex 发现入口
 .codex/
-├── README.md
-├── config.toml            # 子 Agent 并发与嵌套深度
-├── agents/               # 六个 TOML 原生 Agent + Markdown 详细角色契约
-└── workflows/            # 五个可执行工作流说明
+├── config.toml          # Codex 子 Agent 并发配置
+├── agents/              # Architect / Builder / Reviewer；旧名为兼容入口
+└── workflows/           # 既有工作流名到三种能力角色的映射
 ```
 
-## 自然语言入口
+## 原生角色
 
-- `用 SAC Codex 全流程做 <project>，区域为 ...`
-- `用 SAC Codex 快速原型做 <project>`
-- `用 SAC Codex 审计 <project>`
-- `用 SAC Codex 仅交付 <project>`
-- `用 SAC Codex 生成/翻译/检查 <project> 文档`
+- `sac_architect`：只读研究、架构设计和架构合同。
+- `sac_builder`：Terraform、文档和获授权的本地交付实现。
+- `sac_reviewer`：只读质量、安全、架构/文档一致性及交付检查。
 
-调用时应提供项目名、目标 `site/region`（例如 `cn/cn-north-4`）和简要说明。缺失信息可从仓库可靠推断时直接推断；
-会显著改变架构、成本或发布范围时由主 Agent 向用户确认。
+`sac_developer`、`sac_documenter`、`sac_tester`、`sac_security`、`sac_delivery` 仍可被旧调用方
+使用，但均为 Deprecated 兼容别名；新任务不得默认路由到这些名称。
 
-## 与 Claude Code 版本的差异
+## 使用原则
 
-- Claude Code 版以 JS 工作流声明执行；Codex 版以 `AGENTS.md` 持久规则和角色/工作流契约执行。
-- Codex 通过六个项目级 TOML 自定义 Agent 加载角色，主 Agent 根据可用槽动态分批。
-- 子 Agent 共享工作区，因此通过文件所有权和只读审计约束避免冲突。
-- 外部发布、Git 提交和云资源变更不会因选择工作流而自动获得授权。
+小型任务由主 Agent 直接承担一个能力角色。只有独立工作能降低上下文噪声时才启动子 Agent；
+大型架构变更采用 Architect → Builder → Reviewer，修复再回到 Builder。平台适配不改变
+Terraform 事实、SAC Core 规则或授权边界。

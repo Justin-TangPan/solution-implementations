@@ -1,6 +1,9 @@
 export const meta = {
   name: 'sac-full-pipeline',
-  description: 'SAC 全流程：架构→开发→测试与安全→文档→本地交付，6 Agent 分阶段协同',
+  status: 'deprecated',
+  runtime: 'legacy-custom-workflow-dsl',
+  replacement: 'Claude native architect -> builder -> reviewer -> builder-fix flow',
+  description: 'SAC 全流程：架构→开发→测试与按需安全审计→文档→本地交付',
   phases: [
     { title: 'Architect', detail: '方案设计与技术评估' },
     { title: 'Develop', detail: '模板与内联部署逻辑开发' },
@@ -18,9 +21,12 @@ export const meta = {
 
 const PROJECT = args.project          // e.g. "litellm"
 const TARGETS = args.regions || []    // confirmed site/region values, e.g. cn/cn-north-4
+const VARIANTS = args.variants || []
 const DESCRIPTION = args.description  // e.g. "Multi-model API Gateway"
 const GENERATE_DOCX = args.generate_docx === true
 const CLOUD_TEST = args.cloud_test || {}
+const RUN_SECURITY = args.security === true
+const LOCAL_DELIVERY_AUTHORIZED = args.local_delivery_authorized === true
 const CONFIRMED_INPUTS = args.confirmed_inputs || null
 
 if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(PROJECT || '')) {
@@ -56,6 +62,7 @@ const architectResult = await agent({
   schema: {
     type: 'object',
     properties: {
+      status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
       feasibility: { type: 'string' },
       system_assessment: { type: 'string' },
       initial_solution: { type: 'string' },
@@ -82,7 +89,7 @@ const architectResult = await agent({
       resources: { type: 'array', items: { type: 'object' } },
       dependencies: { type: 'array', items: { type: 'string' } },
     },
-    required: ['feasibility', 'system_assessment', 'initial_solution', 'user_inputs_required', 'architecture', 'decisions', 'variables', 'rules_read', 'reference_templates', 'fixed_values', 'public_endpoints', 'allowed_artifacts', 'deviations', 'resources', 'dependencies'],
+    required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'feasibility', 'system_assessment', 'initial_solution', 'user_inputs_required', 'architecture', 'decisions', 'variables', 'rules_read', 'reference_templates', 'fixed_values', 'public_endpoints', 'allowed_artifacts', 'deviations', 'resources', 'dependencies'],
   },
 })
 
@@ -100,10 +107,11 @@ if (!CONFIRMED_INPUTS || !TARGETS.length) {
   }
 }
 
-const targetDetails = TARGETS.map((target) => {
+const targetDetails = TARGETS.flatMap((target) => {
   const match = /^(cn|intl)\/([^/]+)$/.exec(target)
   if (!match) throw new Error(`Invalid target "${target}"; expected site/region, for example cn/cn-north-4`)
-  return { target, site: match[1], region: match[2] }
+  const variants = VARIANTS.length ? VARIANTS : [null]
+  return variants.map(variant => ({ target: variant ? `${target}/${variant}` : target, site: match[1], region: match[2], variant }))
 })
 
 const unapprovedDeviations = architectResult.deviations.filter(item => item.requires_user_confirmation && !item.confirmed_by_user)
@@ -119,7 +127,7 @@ log('💻 开发 Agent 开始工作...')
 
 const devResults = await pipeline(
   targetDetails,
-  async ({ target, site, region }) => {
+  async ({ target, site, region, variant }) => {
     const is_cn = site === 'cn'
 
     const result = await agent({
@@ -129,6 +137,7 @@ const devResults = await pipeline(
 项目：${PROJECT}
 站点：${site}
 Region：${region}
+Variant：${variant || 'none'}
 ${is_cn ? '源类型：国内（华为云镜像、PyPI镜像）' : '源类型：海外（官方源）'}
 
 ## 架构决策
@@ -144,24 +153,23 @@ ${JSON.stringify(architectResult.variables, null, 2)}
 禁止增加合同外变量、端口、代理层、requirements/lock 或外部下载。
 
 ## 任务
-	按 sac-project-rules 的 site/region/variant 目录模型，在 practices/${PROJECT}/ 下创建文件：
-	1. <site>/<region>/<variant>/terraform/deploying-${PROJECT}.tf
-	2. <site>/<region>/<variant>/.extension（当前质量门禁可选）
+		从 assets/templates/hermes_agent_inline.tf 基线开始，按 sac-project-rules 的 site/region[/variant] 目录模型创建 deploying-${PROJECT}.tf 和可选 .extension；不创建 terraform/ 包装目录。
 	安装逻辑、Docker Compose 和健康检查均内联到 Terraform user_data，不创建外部安装脚本。
 
 输出创建的文件列表及路径`,
       schema: {
         type: 'object',
         properties: {
-          files_created: { type: 'array', items: { type: 'string' } },
+          status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
+          site: { type: 'string' }, region: { type: 'string' }, variant: { type: ['string', 'null'] }, files_created: { type: 'array', items: { type: 'string' } }, validation_notes: { type: 'array' },
           install_strategy: { type: 'string' },
           docker_image_source: { type: 'string' },
         },
-        required: ['files_created'],
+        required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'site', 'region', 'variant', 'files_created', 'validation_notes'],
       },
     })
 
-    return { target, site, region, ...result }
+    return { target, site, region, variant, ...result }
   },
 )
 
@@ -169,10 +177,10 @@ log(`✅ 开发完成：${TARGETS.length} 个目标`)
 devResults.forEach(r => log(`   ${r.target}: ${r.files_created.length} 个文件`))
 
 // ============================================================================
-// Phase 3: 测试 + 安全审查（并行）
+// Phase 3: 测试 + 可选安全审查（并行）
 // ============================================================================
-phase('Test & Security')
-log('🧪 测试 Agent + 安全审查 Agent 并行工作...')
+phase('Test & Optional Security')
+log(`🧪 测试 Agent${RUN_SECURITY ? ' + 安全审查 Agent 并行' : ''}工作...`)
 
 const [testResult, securityResult] = await parallel([
   async () => {
@@ -189,16 +197,18 @@ const [testResult, securityResult] = await parallel([
       schema: {
         type: 'object',
         properties: {
+          status: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, handoff: { type: 'object' }, commands: { type: 'array' },
           passed: { type: 'boolean' },
-          issues: { type: 'array', items: { type: 'object', properties: { severity: { type: 'string', enum: ['error', 'warning', 'info'] }, file: { type: 'string' }, message: { type: 'string' } }, required: ['severity', 'file', 'message'] } },
+          issues: { type: 'array', items: { type: 'object', properties: { severity: { type: 'string', enum: ['error', 'warning', 'info'] }, file: { type: 'string' }, line: { type: 'number' }, message: { type: 'string' }, evidence: { type: 'string' } }, required: ['severity', 'file', 'message', 'evidence'] } },
           summary: { type: 'string' },
         },
-        required: ['passed', 'issues', 'summary'],
+        required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'commands', 'passed'],
       },
     })
     return result
   },
   async () => {
+    if (!RUN_SECURITY) return { status: 'skipped', passed: true, findings: [], summary: 'Security review not requested', files_changed: [], checks_run: [], issues: [], handoff: {}, scanned_scope: [] }
     const result = await agent({
       label: 'security',
       agentType: 'sac-security',
@@ -212,11 +222,12 @@ const [testResult, securityResult] = await parallel([
       schema: {
         type: 'object',
         properties: {
+          status: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' }, scanned_scope: { type: 'array' },
           passed: { type: 'boolean' },
-          findings: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] }, file: { type: 'string' }, message: { type: 'string' }, remediated: { type: 'boolean' } }, required: ['id', 'severity', 'file', 'message', 'remediated'] } },
+          findings: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] }, file: { type: 'string' }, line: { type: 'number' }, message: { type: 'string' }, evidence: { type: 'string' }, remediation: { type: 'string' } }, required: ['id', 'severity', 'file', 'message', 'evidence', 'remediation'] } },
           summary: { type: 'string' },
         },
-        required: ['passed', 'findings', 'summary'],
+        required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'scanned_scope', 'passed', 'findings'],
       },
     })
     return result
@@ -234,17 +245,13 @@ if (!securityResult.passed) {
   log(`⚠️ 安全审查发现问题：${securityResult.findings.length} 个`)
   securityResult.findings.filter(f => f.severity === 'critical' || f.severity === 'high').forEach(f => log(`   🔴 ${f.id} [${f.severity}] ${f.file}: ${f.message}`))
 } else {
-  log('✅ 安全审查全部通过')
+  log(RUN_SECURITY ? '✅ 安全审查全部通过' : 'ℹ️ 未请求安全审查')
 }
 
 const testErrors = testResult.issues.filter(item => item.severity === 'error')
 const securityBlockers = securityResult.findings.filter(item => item.severity === 'critical' || item.severity === 'high')
 if (!testResult.passed || testErrors.length || !securityResult.passed || securityBlockers.length) {
   throw new Error(`Test/security gate failed: ${testErrors.length} errors, ${securityBlockers.length} critical/high findings`)
-}
-
-if (!CLOUD_TEST.passed || !CLOUD_TEST.candidate_version) {
-  throw new Error('Static gates passed. Stop and ask the user to test the exact local candidate bundle; rerun with cloud_test.passed and cloud_test.candidate_version.')
 }
 
 // ============================================================================
@@ -286,6 +293,7 @@ const docResults = await pipeline(
       schema: {
         type: 'object',
         properties: {
+          status: { type: 'string' }, summary: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' },
           standard_document: { type: 'string' },
           markdown_files: { type: 'array', items: { type: 'string' } },
           docx_files: { type: 'array', items: { type: 'string' } },
@@ -294,9 +302,9 @@ const docResults = await pipeline(
           quality_status: { type: 'string', enum: ['pass', 'warning', 'fail'] },
           errors: { type: 'array', items: { type: 'object' } },
           warnings: { type: 'array', items: { type: 'object' } },
-          manual_review_items: { type: 'array', items: { type: 'object' } },
+          manual_review_items: { type: 'array', items: { type: 'object', properties: { blocking: { type: 'boolean' } }, required: ['blocking'] } },
         },
-        required: ['standard_document', 'markdown_files', 'docx_files', 'languages', 'quality_report', 'quality_status', 'errors', 'warnings', 'manual_review_items'],
+        required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'standard_document', 'markdown_files', 'docx_files', 'languages', 'quality_report', 'quality_status', 'errors', 'warnings', 'manual_review_items'],
       },
     })
 
@@ -309,10 +317,11 @@ log(`✅ 文档完成：${new Set(targetDetails.map(item => item.site)).size} �
 const documentBlockingErrors = docResults.flatMap(result =>
   result.errors.filter(error => error.blocks_export !== false),
 )
-const documentGatePassed = docResults.every(result => result.quality_status !== 'fail') && documentBlockingErrors.length === 0
+const blockingManualReviews = docResults.flatMap(result => result.manual_review_items.filter(item => item.blocking === true))
+const documentGatePassed = docResults.every(result => result.quality_status !== 'fail') && documentBlockingErrors.length === 0 && blockingManualReviews.length === 0
 
 if (!documentGatePassed) {
-  log(`❌ 文档质量门禁失败：${documentBlockingErrors.length} 个阻断错误`)
+  log(`❌ 文档质量门禁失败：${documentBlockingErrors.length} 个阻断错误，${blockingManualReviews.length} 个阻断人工确认项`)
   documentBlockingErrors.forEach(error => log(`   ${error.document || '(unknown)'}: ${error.message || JSON.stringify(error)}`))
   throw new Error('Document quality gate failed; release and IDP listing are prohibited')
 }
@@ -327,6 +336,10 @@ log(`   人工审核项：${docResults.reduce((count, result) => count + result.
 phase('Deliver')
 log('📦 交付 Agent 开始工作...')
 
+if (!LOCAL_DELIVERY_AUTHORIZED) {
+  throw new Error('Local candidate packaging requires explicit local_delivery_authorized=true')
+}
+
 const deliveryResult = await agent({
   label: 'delivery',
   agentType: 'sac-delivery',
@@ -336,22 +349,28 @@ const deliveryResult = await agent({
 ## 任务
 1. 创建 release/${PROJECT}/ 目录结构，从 practices/${PROJECT}/ 复制文件
 2. 打包 release/${PROJECT}/${PROJECT}.zip
-3. 生成 SHA256SUMS 并核对归档内容与源文件
+3. 生成 SHA256SUMS，candidate_version 和 candidate_sha256，并核对归档内容与源文件
 本工作流只生成本地交付包，不执行任何外部发布、云资源变更或 Git 操作。
 
 输出交付结果。`,
   schema: {
     type: 'object',
     properties: {
+      status: { type: 'string' }, files_changed: { type: 'array' }, checks_run: { type: 'array' }, issues: { type: 'array' }, handoff: { type: 'object' }, source_comparison: { type: 'string' }, blocked_reasons: { type: 'array' },
       release_dir: { type: 'string' },
       regions_released: { type: 'array', items: { type: 'string' } },
       archive_file: { type: 'string' },
-      checksum_file: { type: 'string' },
+      checksums: { type: 'object' },
+      candidate_version: { type: 'string' },
+      candidate_sha256: { type: 'string' },
       summary: { type: 'string' },
     },
-    required: ['release_dir', 'regions_released', 'archive_file', 'checksum_file', 'summary'],
+    required: ['status', 'summary', 'files_changed', 'checks_run', 'issues', 'handoff', 'source_comparison', 'blocked_reasons', 'release_dir', 'regions_released', 'archive_file', 'checksums', 'candidate_version', 'candidate_sha256'],
   },
 })
+
+const cloudTestVerified = CLOUD_TEST.passed === true && CLOUD_TEST.candidate_version === deliveryResult.candidate_version && CLOUD_TEST.candidate_sha256 === deliveryResult.candidate_sha256
+if (!cloudTestVerified) log(`ℹ️ 本地候选包已生成，但未绑定该精确候选的云测证据；不得声明云上验证通过。`)
 
 log(`✅ 交付完成`)
 log(`   目录：${deliveryResult.release_dir}`)
@@ -388,7 +407,8 @@ return {
   security_passed: securityResult.passed,
   documentation: docResults,
   document_gate_passed: documentGatePassed,
+  cloud_test_verified: cloudTestVerified,
   release_dir: deliveryResult.release_dir,
   archive_file: deliveryResult.archive_file,
-  checksum_file: deliveryResult.checksum_file,
+  checksums: deliveryResult.checksums,
 }

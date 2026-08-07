@@ -1,6 +1,13 @@
 import { join } from 'node:path';
 import { readFile } from 'node:fs/promises';
-import { AGENTS_END, AGENTS_START, MANIFEST_PATH, MANIFEST_SCHEMA_VERSION } from './constants.js';
+import {
+  AGENTS_END,
+  AGENTS_START,
+  CLAUDE_END,
+  CLAUDE_START,
+  MANIFEST_PATH,
+  MANIFEST_SCHEMA_VERSION,
+} from './constants.js';
 import { exists, readText, sha256 } from './fs-utils.js';
 
 function result(level, code, message) {
@@ -41,7 +48,13 @@ export async function diagnose(targetDir = process.cwd()) {
   }
 
   if (manifest.components?.codex) {
-    for (const required of ['AGENTS.md', '.codex/agents/architect.toml', '.codex/workflows/full-pipeline.md']) {
+    for (const required of [
+      'AGENTS.md',
+      '.codex/agents/architect.toml',
+      '.codex/agents/builder.toml',
+      '.codex/agents/reviewer.toml',
+      '.codex/workflows/full-pipeline.md',
+    ]) {
       if (!(await exists(join(targetDir, required)))) {
         results.push(result('error', 'codex-incomplete', required));
       }
@@ -51,6 +64,23 @@ export async function diagnose(targetDir = process.cwd()) {
       const agents = await readText(agentsPath);
       if (agents.split(AGENTS_START).length !== 2 || agents.split(AGENTS_END).length !== 2) {
         results.push(result('error', 'agents-block-invalid', 'AGENTS.md must contain exactly one complete SAC marker block.'));
+      }
+    }
+  }
+  if (manifest.components?.claude) {
+    for (const required of [
+      '.claude/CLAUDE.md',
+      '.claude/agents/architect.md',
+      '.claude/agents/builder.md',
+      '.claude/agents/reviewer.md',
+    ]) {
+      if (!(await exists(join(targetDir, required)))) results.push(result('error', 'claude-incomplete', required));
+    }
+    const claudePath = join(targetDir, '.claude/CLAUDE.md');
+    if (await exists(claudePath)) {
+      const claude = await readText(claudePath);
+      if (claude.split(CLAUDE_START).length !== 2 || claude.split(CLAUDE_END).length !== 2) {
+        results.push(result('error', 'claude-block-invalid', 'CLAUDE.md must contain exactly one complete SAC marker block.'));
       }
     }
   }
@@ -73,8 +103,16 @@ export async function diagnose(targetDir = process.cwd()) {
             results.push(result('error', 'skills-index-invalid', `Invalid project Skill path: ${skill.path}`));
             continue;
           }
-          for (const required of [skill.path, `.codex/${skill.path}`]) {
-            if (!(await exists(join(targetDir, required)))) results.push(result('error', 'skills-incomplete', required));
+          if (!(await exists(join(targetDir, skill.path)))) results.push(result('error', 'skills-incomplete', skill.path));
+          if (manifest.components?.codex) {
+            const discoveryPath = `.agents/${skill.path}`;
+            if (!(await exists(join(targetDir, discoveryPath)))) results.push(result('error', 'codex-skills-incomplete', discoveryPath));
+          }
+        }
+        if (manifest.components?.claude) {
+          for (const skill of index.skills.filter((item) => item.status === 'core')) {
+            const adapterPath = `.claude/skills/${skill.id}/SKILL.md`;
+            if (!(await exists(join(targetDir, adapterPath)))) results.push(result('error', 'claude-skills-incomplete', adapterPath));
           }
         }
       } catch (error) {

@@ -18,7 +18,7 @@ export function PracticeDetail({ practice, documents, terraformFiles }: { practi
   const [documentIndex, setDocumentIndex] = useState(0)
   const [terraformIndex, setTerraformIndex] = useState(0)
   const isLiteLLM = practice.slug === "litellm"
-  const profile = getArchitectureProfile(practice.slug, variant.toLowerCase()) ?? getArchitectureProfile("litellm")!
+  const profile = getArchitectureProfile(practice.slug, variant.toLowerCase())
 
   return (
     <div className="px-5 md:px-10 py-10 md:py-14 max-w-7xl mx-auto space-y-7">

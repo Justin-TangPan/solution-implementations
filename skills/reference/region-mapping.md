@@ -9,12 +9,14 @@
 | `cn` | `cn-north-4`（华北-北京四） | 中国站，中文文档 |
 | `intl` | `ap-southeast-3`（亚太-新加坡） | 国际站，中英双语文档 |
 
-实现目录只有 `site/region/variant` 三个维度：
+默认实现目录只有 `site/region` 两个维度：
 
 ```text
-practices/<practice>/cn/<region>/<standard|ha>/
-practices/<practice>/intl/<region>/<standard|ha>/
+practices/<practice>/cn/<region>/deploying-<practice>.tf
+practices/<practice>/intl/<region>/deploying-<practice>.tf
 ```
+
+同一 Region 存在多个部署形态时，才改为 `<region>/<variant>/deploying-<practice>.tf`；只有默认单机标准版时不建 `standard/`。任何形态都不建 `terraform/` 包装目录。
 
 语言不是实现维度。国际站共享一份 Terraform，双语参数文案放在 `.extension`，双语正文分别放在 `intl/docs/zh-cn/` 和 `intl/docs/en-us/`。禁止新建 `intl/<locale>/<region>/<variant>/`，也禁止把 `hk` 当作站点。
 
@@ -34,7 +36,7 @@ practices/<practice>/intl/<region>/<standard|ha>/
 | `sa-brazil-1` | 拉美-圣保罗 | `intl` |
 | `tr-west-1` | 土耳其-伊斯坦布尔 | `intl` |
 
-未列出的 Region 必须先核验站点归属、服务可用性和规格可用性，再加入架构合同；不得凭 Region 前缀推断交付支持。
+未列出的 Region 必须先核验站点归属、服务可用性和规格可用性，再加入架构方案；不得凭 Region 前缀推断交付支持。
 
 ## 站点差异
 

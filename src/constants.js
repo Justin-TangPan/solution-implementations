@@ -6,12 +6,14 @@ export const MANIFEST_SCHEMA_VERSION = 1;
 export const MANIFEST_PATH = '.sac/manifest.json';
 export const AGENTS_START = '<!-- SAC:START -->';
 export const AGENTS_END = '<!-- SAC:END -->';
+export const CLAUDE_START = '<!-- SAC:START -->';
+export const CLAUDE_END = '<!-- SAC:END -->';
 
 export const HELP = `SAC Solution Practices CLI
 
 Usage:
   sac init [--dry-run] [--force]
-  sac install codex|skills [--dry-run] [--force]
+  sac install codex|claude|all|skills [--dry-run] [--force]
   sac install practice <name> [--dry-run] [--force]
   sac update [--dry-run] [--force]
   sac list [--json]
@@ -19,8 +21,8 @@ Usage:
   sac help
 
 Commands:
-  init       Install Codex agents, workflows, SAC skills, and isolated local tooling.
-  install    Install one component or one named practice.
+  init       Install both Coding Agent adapters, SAC Core skills, and isolated local tooling.
+  install    Install one self-contained adapter, all adapters, shared skills, or one named practice.
   update     Update components recorded in .sac/manifest.json.
   list       List practices and installable components.
   doctor     Validate the local installation without modifying files.

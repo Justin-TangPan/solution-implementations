@@ -1,6 +1,7 @@
 # SAC Web 可视化
 
-华为云解决方案实践（Solution Practices）的解决方案架构师工作台 — 总控驾驶舱、方案中心、架构拓扑、交付准备度、质量证据与本地资产追踪。
+SAC 的辅助性只读展示层，用于浏览正式范围、仓库资产和构建时质量快照。它不定义正式
+Practice，不执行 Agent，也不创建云资源。
 
 ## 技术栈
 
@@ -19,9 +20,11 @@ web/src/lib/data.ts (编辑性字段) ─→ web/src/lib/catalog.ts (合并) ─
 skills-index.json ─→ /skills
 ```
 
-- **结构化字段**（slug / regions / hasHA / sites）由生成器从 `practices/` 目录树真实扫描产出。
-- **编辑性字段**（score / tier / cost / overview / tagline / category）由 `data.ts` 人工维护。
-- `catalog.ts` 按 slug 合并两者，页面统一从 `catalog.ts` 取数。
+- **正式范围**来自 `project.config.json`。
+- **结构化字段**（slug / regions / hasHA / sites）由生成器扫描正式 `practices/` 产出。
+- **编辑性字段**（score / tier / cost / overview / tagline / category）由 `data.ts` 人工维护，
+  不属于质量结果；缺失时页面明确显示待补充。
+- `catalog.ts` 以生成索引为主表按 slug 合并，人工元数据不会决定正式范围。
 
 ### 重新生成索引
 
@@ -29,7 +32,7 @@ skills-index.json ─→ /skills
 node scripts/gen-practices-index.mjs
 ```
 
-新增/删除 `practices/` 目录后跑一次，再 rebuild web。
+`npm run build` 会通过 `prebuild` 自动重新生成；单独执行该命令用于检查索引变化。
 
 ## 开发
 
@@ -51,7 +54,9 @@ npx serve out    # 本地预览
 
 ## Skills 页面
 
-`/skills` 从根目录 `skills-index.json` 展示正式、条件和兼容能力，以及各角色的必需/条件绑定。它只用于发现和审计，不控制运行时；实际加载以 `.codex/agents` 角色合同为准。
+`/skills` 从根目录 `skills-index.json` 展示 Core、Optional、Compatibility、Deprecated 能力，以及
+Architect/Builder/Reviewer 的必需/条件绑定。它只用于展示；分类和角色事实以
+`project.config.json` 为准，实际加载由各 Runtime Adapter 决定。
 
 ## 目录结构
 

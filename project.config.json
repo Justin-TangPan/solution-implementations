@@ -1,9 +1,14 @@
 {
   "formal": {
     "practices": [
+      "cognee",
+      "astrbot",
+      "dify",
       "litellm",
+      "newapi",
       "supabase",
-      "openjiuwen"
+      "openjiuwen",
+      "mem0"
     ],
     "exclude": [
       ".claude",
@@ -11,15 +16,153 @@
       "scripts/experimental"
     ]
   },
+  "agent_capabilities": {
+    "supported_runtimes": [
+      "codex",
+      "claude-code"
+    ],
+    "core_roles": {
+      "architect": {
+        "mandatory_skills": [
+          "sac-project",
+          "sac-architecture"
+        ],
+        "conditional_skills": [
+          "sac-deep-search"
+        ]
+      },
+      "builder": {
+        "mandatory_skills": [
+          "sac-project",
+          "sac-implementation"
+        ],
+        "conditional_skills": [
+          "sac-documentation",
+          "query-huawei-cloud-prices"
+        ]
+      },
+      "reviewer": {
+        "mandatory_skills": [
+          "sac-project",
+          "sac-quality"
+        ],
+        "conditional_skills": []
+      }
+    },
+    "skills": {
+      "core": [
+        "sac-project",
+        "sac-architecture",
+        "sac-implementation",
+        "sac-quality",
+        "sac-documentation"
+      ],
+      "optional": [
+        "sac-deep-search",
+        "sac-page-enhance",
+        "query-huawei-cloud-prices"
+      ],
+      "compatibility": {
+        "sac-project-rules": [
+          "sac-project"
+        ],
+        "sac-technical-evaluator": [
+          "sac-architecture"
+        ],
+        "sac-business-evaluator": [
+          "sac-architecture"
+        ],
+        "sac-rfs-practices": [
+          "sac-implementation"
+        ],
+        "sac-testing": [
+          "sac-quality"
+        ],
+        "sac-security": [
+          "sac-quality"
+        ],
+        "sac-delivery": [
+          "sac-implementation",
+          "sac-quality"
+        ]
+      },
+      "deprecated": {
+        "sac-document-pipeline": "sac-documentation"
+      }
+    },
+    "task_flows": {
+      "small-change": [
+        "builder"
+      ],
+      "maintain-practice": [
+        "builder",
+        "reviewer"
+      ],
+      "architecture-change": [
+        "architect",
+        "builder",
+        "reviewer"
+      ],
+      "new-practice": [
+        "architect",
+        "builder",
+        "reviewer",
+        "builder"
+      ],
+      "review-practice": [
+        "reviewer"
+      ],
+      "documentation-change": [
+        "builder"
+      ]
+    },
+    "adapters": {
+      "codex": {
+        "instructions": "AGENTS.md",
+        "skill_discovery": ".agents/skills",
+        "agents": ".codex/agents",
+        "workflows": ".codex/workflows"
+      },
+      "claude-code": {
+        "instructions": ".claude/CLAUDE.md",
+        "skill_discovery": ".claude/skills",
+        "agents": ".claude/agents",
+        "workflows": "skills-and-subagents"
+      }
+    }
+  },
   "quality_gate": {
-    "require_terraform_dir": true,
+    "require_terraform_dir": false,
     "require_scripts_dir": false,
     "require_extension": false,
     "allow_inline_install_script": true,
-    "canonical_layout": "site-region-variant",
+    "canonical_layout": "site-region-optional-variant",
+    "reject_unlisted_practice_dirs": true,
     "max_terraform_files_per_instance": 1,
     "terraform_locale_layer": false,
     "architecture_exceptions": {
+      "dify/cn/cn-north-4/ha": {
+        "allowed_providers": [
+          "huaweicloud",
+          "kubernetes"
+        ],
+        "accepted_risks": [
+          "legacy_remote_installer"
+        ],
+        "reason": "已验证的 Dify HA 模板使用 Kubernetes Provider 管理 CCE 工作负载并保留现网远端安装链路；Provider 例外不豁免凭证与网络审计。"
+      },
+      "dify/cn/cn-north-4/standard": {
+        "accepted_risks": [
+          "legacy_remote_installer"
+        ],
+        "reason": "保留已上线 Dify standard 远端安装链路，不授权新模板复用。"
+      },
+      "dify/cn/cn-north-4/css": {
+        "accepted_risks": [
+          "legacy_remote_installer"
+        ],
+        "reason": "保留已上线 Dify CSS 远端安装链路，不授权新模板复用。"
+      },
       "litellm/*/ha": {
         "allowed_providers": [
           "huaweicloud",
@@ -33,6 +176,23 @@
         ],
         "reason": "保留现有已上线访问架构，风险由质量门禁持续提示"
       },
+      "newapi/intl/ap-southeast-1/ha": {
+        "allowed_providers": [
+          "huaweicloud",
+          "kubernetes"
+        ],
+        "allowed_huaweicloud_provider_keys": [
+          "endpoints",
+          "region"
+        ],
+        "reason": "已验证的 NewAPI HA 模板需要 Kubernetes Provider 管理 CCE 工作负载，并保留国际站 BSS endpoint 覆盖。"
+      },
+      "newapi/intl/ap-southeast-1/standard": {
+        "accepted_risks": [
+          "legacy_remote_installer"
+        ],
+        "reason": "保留已上线 NewAPI standard 远端安装链路，不授权新模板复用。"
+      },
       "supabase/*/standard": {
         "accepted_risks": [
           "public_http_control_plane"
@@ -41,6 +201,41 @@
       }
     },
     "practice_policies": {
+      "astrbot/cn/cn-north-4/standard": {
+        "single_active_template": true,
+        "inline_user_data": true,
+        "accepted_risks": [
+          "public_http_control_plane"
+        ],
+        "forbidden_variables": [
+          "llm_api_key",
+          "platform_token",
+          "web_access_cidr"
+        ],
+        "official_default_interface": {
+          "port": 6185,
+          "remote_ip_prefix": "0.0.0.0/0",
+          "do_not_override_runtime_port": true
+        }
+      },
+      "cognee/cn/cn-north-4/standard": {
+        "single_active_template": true,
+        "inline_user_data": true,
+        "accepted_risks": [
+          "public_http_control_plane"
+        ],
+        "forbidden_variables": [
+          "db_password",
+          "jwt_secret",
+          "llm_api_key",
+          "web_access_cidr"
+        ],
+        "official_default_interface": {
+          "port": 8000,
+          "remote_ip_prefix": "0.0.0.0/0",
+          "do_not_override_runtime_port": true
+        }
+      },
       "openjiuwen/cn/cn-north-4/jiuwenswarm": {
         "single_active_template": true,
         "inline_user_data": true,
@@ -56,6 +251,21 @@
         },
         "official_default_interface": {
           "port": 5173,
+          "remote_ip_prefix": "0.0.0.0/0",
+          "do_not_override_runtime_port": true
+        }
+      },
+      "mem0/cn/cn-north-4/standard": {
+        "single_active_template": true,
+        "inline_user_data": true,
+        "accepted_risks": [
+          "public_http_control_plane"
+        ],
+        "forbidden_variables": [
+          "web_access_cidr"
+        ],
+        "official_default_interface": {
+          "port": 8888,
           "remote_ip_prefix": "0.0.0.0/0",
           "do_not_override_runtime_port": true
         }
@@ -79,16 +289,20 @@
     "publish_requires_manual_review": true
   },
   "distribution": {
-    "npm_package": "solution-practices",
-    "node_minimum": "20",
-    "manifest_schema_version": 1,
-    "content_version": "2026.07.21",
     "managed_file_policies": {
       "AGENTS.md": "merge-block",
-      ".codex/agents/sac-*": "managed",
+      ".claude/CLAUDE.md": "merge-block",
+      ".codex/agents/*": "managed",
       ".codex/workflows/*": "managed",
-      ".codex/skills/sac-*": "managed",
+      ".agents/skills/sac-*": "managed",
+      ".agents/skills/query-huawei-cloud-prices": "managed",
+      ".claude/agents/*": "managed",
+      ".claude/skills/sac-*": "managed",
+      ".claude/skills/query-huawei-cloud-prices": "managed",
+      ".claude/workflows/*": "managed",
       "skills/sac-*": "managed",
+      "skills/query-huawei-cloud-prices": "managed",
+      "skills/reference/*": "managed",
       "practices/*": "managed-unless-modified"
     }
   },
@@ -100,10 +314,15 @@
     "bin/sac.js": "formal",
     "src": "formal",
     "templates": "formal",
-    ".codex/agents": "local",
-    ".codex/workflows": "local",
-    ".claude/agents": "local",
-    ".claude/workflows": "local",
-    "web": "formal"
+    "AGENTS.md": "codex-adapter",
+    ".agents/skills": "codex-adapter",
+    ".codex/agents": "codex-adapter",
+    ".codex/workflows": "codex-adapter",
+    ".claude/CLAUDE.md": "claude-adapter",
+    ".claude/skills": "claude-adapter",
+    ".claude/agents": "claude-adapter",
+    ".claude/workflows": "compatibility",
+    "skills-embeddings.json": "derived-unused",
+    "web": "auxiliary"
   }
 }

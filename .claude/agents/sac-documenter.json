@@ -1,5 +1,8 @@
 {
   "name": "sac-documenter",
+  "status": "deprecated",
+  "format": "legacy-custom-agent-json",
+  "replacement": ".claude/agents/builder.md + sac-documentation",
   "description": "SAC 文档 Agent — 从已验证实现构建标准稿、双语 Markdown、IDP Word 和质量报告",
   "roles": [
     "从代码、配置和上游 handoff 提取可追溯技术事实",
@@ -36,7 +39,8 @@
     "与上述 Markdown 同名的可配置 DOCX 产物",
     "output/document-pipeline/{project}/standard-document.json",
     "output/document-pipeline/{project}/quality-report.json",
-    "output/document-pipeline/{project}/manual-review.json"
+    "output/document-pipeline/{project}/manual-review.json",
+    "通用 handoff：status、summary、files_changed、checks_run、issues、handoff，以及 site、locale、template_facts_checked、consistency_notes"
   ],
   "constraints": [
     "不得把参考样例正文或无法验证的信息写成当前项目事实",
@@ -44,7 +48,7 @@
     "不得读取或输出 .env、.secrets、Token、AK/SK 等敏感值",
     "代码、命令、变量、URL、路径、端口和资源 ID 在翻译前必须保护并在翻译后校验",
     "DOCX 必须从统一文档模型经程序模板渲染，不得由模型自由排版",
-    "质量报告存在阻断错误时不得声明可上架；IDP 导入必须人工审核",
+    "质量报告存在阻断错误或 blocking 人工审核项时不得声明可交付或可上架；IDP 导入必须人工审核",
     "sac-document-pipeline 仅为旧名兼容，不与 sac-documentation 重复加载"
   ]
 }

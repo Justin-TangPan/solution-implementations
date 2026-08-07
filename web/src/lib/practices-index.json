@@ -1,7 +1,42 @@
 {
-  "generated": "2026-07-20T09:55:26.784Z",
-  "count": 3,
+  "count": 8,
   "practices": [
+    {
+      "slug": "astrbot",
+      "title": "AstrBot",
+      "sites": [
+        "cn"
+      ],
+      "regions": [
+        "cn-north-4"
+      ],
+      "hasHA": false,
+      "docsPath": "practices/astrbot/cn/docs/AstrBot-方案详情_zh.md"
+    },
+    {
+      "slug": "cognee",
+      "title": "Cognee 方案详情",
+      "sites": [
+        "cn"
+      ],
+      "regions": [
+        "cn-north-4"
+      ],
+      "hasHA": false,
+      "docsPath": "practices/cognee/cn/docs/Cognee-方案详情_zh.md"
+    },
+    {
+      "slug": "dify",
+      "title": "Dify LLM 应用开发平台",
+      "sites": [
+        "cn"
+      ],
+      "regions": [
+        "cn-north-4"
+      ],
+      "hasHA": true,
+      "docsPath": "practices/dify/cn/docs/Dify-方案详情_zh.md"
+    },
     {
       "slug": "litellm",
       "title": "LiteLLM，统一的 LLM 网关",
@@ -22,6 +57,39 @@
       ],
       "hasHA": true,
       "docsPath": "practices/litellm/cn/docs/LiteLLM-方案详情_zh.md"
+    },
+    {
+      "slug": "mem0",
+      "title": "Mem0 方案详情",
+      "sites": [
+        "cn",
+        "intl"
+      ],
+      "regions": [
+        "af-north-1",
+        "af-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "cn-north-4",
+        "la-north-2",
+        "sa-brazil-1",
+        "tr-west-1"
+      ],
+      "hasHA": false,
+      "docsPath": "practices/mem0/cn/docs/Mem0-方案详情_zh.md"
+    },
+    {
+      "slug": "newapi",
+      "title": "NewAPI 方案详情",
+      "sites": [
+        "intl"
+      ],
+      "regions": [
+        "ap-southeast-1"
+      ],
+      "hasHA": true,
+      "docsPath": "practices/newapi/intl/docs/zh-cn/NewAPI-方案详情_zh.md"
     },
     {
       "slug": "openjiuwen",

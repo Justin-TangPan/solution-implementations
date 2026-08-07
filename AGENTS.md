@@ -1,71 +1,47 @@
 # SAC Codex 协作规则
 
-本文件是 Codex 在本仓库中的项目级持久指令。业务与交付规则的权威来源仍是
-`skills/sac-project-rules/SKILL.md`、`skills/sac-rfs-practices/SKILL.md`、
-`project.config.json` 和 `docs/project-state.md`。
+本仓库是面向 Codex 等 AI 编程工具的解决方案实践工程包。Terraform 方案生产与验证是核心
+价值；仓库不直接调用大模型，也不提供独立 Agent Runtime。正式范围与项目级配置以
+`project.config.json` 为准，SAC 业务规则的唯一权威源是根目录 `skills/`。
 
-## 多 Agent 调度
+Codex 从 `.agents/skills/` 发现这些 Skill；该入口映射根 `skills/`，不得维护
+`.codex/skills/` 副本。`.codex/` 只保存 Codex 专用角色与 Task Flow 适配。
 
-当用户要求以下任一事项时，允许并要求主 Agent 按 `.codex/workflows/` 调度子 Agent：
+## 任务路由
 
-- 新建或完整交付一个 Solution Practice；
-- 快速完成架构和实现原型；
-- 对现有 practice 做测试、安全或完整质量审计；
-- 整理、打包或发布已有 practice；
-- 用户明确要求多 Agent、并行处理或使用 SAC 编排。
+按最小充分角色执行，不要求每项任务都启动多个 Agent：
 
-小范围单文件修改、解释、查询或无需角色分工的任务由主 Agent 直接完成，不为形式上的并行而拆分。
+| 任务 | 角色 / 流程 | Core Skill |
+|---|---|---|
+| 新 Practice、拓扑/云资源选择、数据库/存储/网络/高可用变化 | Architect → Builder → Reviewer → 必要时 Builder Fix | `sac-project`、`sac-architecture`、`sac-implementation`、`sac-quality` |
+| 维护 Terraform、变量、output、初始化脚本 | Builder；中高风险时追加 Reviewer | `sac-project`、`sac-implementation` |
+| 安全、质量、diff 或发布前审查 | Reviewer | `sac-project`、`sac-quality` |
+| 部署文档和参数说明 | Builder 按需加载 Documentation | `sac-project`、`sac-documentation` |
+| 本地交付物整理 | Builder → Reviewer | `sac-implementation`、`sac-quality` |
 
-主 Agent 是唯一编排者，负责：选择工作流、读取所有适用规则、拆分任务、传递上游结果、控制并发、整合结论、执行最终质量门禁并向用户汇报。子 Agent 不得自行扩大范围、发布生产资源、提交 Git 或覆盖其他 Agent 的改动。
+小范围修改由主 Agent 直接承担相应能力角色。只有独立研究、大范围实现或审查会显著污染
+主上下文时，才调度 `.codex/agents/`；主 Agent 始终负责最终范围、架构判断和结果整合。
+五个兼容 Workflow 保留在 `.codex/workflows/`，但仅使用 Architect、Builder、Reviewer。
 
-### 主 Agent 架构门禁
+## 工作原则
 
-收到新 Solution Practice 需求时，主 Agent 同时承担解决方案实践架构师职责，且必须按以下顺序推进：
+- 开始前运行 `git status --short`；保留用户和并行任务已有修改，写入范围不得重叠。
+- 修改前搜索全部引用；优先最小变更，不改变未获授权的 Terraform 资源、变量默认值或部署行为。
+- `reference/` 默认只读；不得把凭证、Token、私有地址写入产物或日志。
+- Reviewer 默认只读。修复必须由主 Agent 明确交给 Builder，修复后重跑受影响检查。
+- 静态检查不是云上验证；没有精确候选的真实云测证据时，不得宣称已部署或 production ready。
+- 外部发布、Git commit/push、真实云资源操作均需用户逐项明确授权。
+- 子 Agent 返回 `status`、`summary`、`files_changed`、`checks_run`、`issues`、`handoff`。
 
-1. 系统评估上游产品、依赖、部署方式、华为云适配性、成本、安全、运维和同类 practice 证据。
-2. 基于评估给出初版方案设计、推荐默认值、风险和待用户确认项。
-3. 确认站点、Region、部署形式（standard/ha）、模板与安装策略、运行方式、公网入口及产品特有外部依赖。用户已明确的信息不得重复询问。
-4. 将确认结果冻结为完整架构合同，再交给 developer、tester、security、documenter 和 delivery；合同未冻结时不得派发实现任务。
+## 验证入口
 
-主 Agent 不得让子 Agent 代替其完成最终架构判断或直接向用户索取零散需求。子 Agent 只执行完整 handoff 中分配的范围，发现合同缺项或冲突时停止并回报主 Agent。
+按变更范围运行最小充分检查，并报告未运行项及原因：
 
-## 工作流选择
+- Node 与 Adapter/CLI：`npm test`
+- Python 与 Practice：`.venv-sac/bin/python -m unittest discover -s scripts/tests -p 'test_*.py'`
+- Terraform 静态门禁：`.venv-sac/bin/python -m scripts.tests.runner [--practice <project>]`
+- Web 变更：在 `web/` 运行 `npm run lint`、`npm run build`
+- 安装器或 npm 内容：`npm pack --dry-run`
 
-| 用户意图 | 工作流 |
-|---|---|
-| “全流程做/交付某方案” | `.codex/workflows/full-pipeline.md` |
-| “快速原型/先做架构和模板” | `.codex/workflows/architect-develop.md` |
-| “审计/检查质量与安全” | `.codex/workflows/audit.md` |
-| “整理发布包/仅交付” | `.codex/workflows/delivery-only.md` |
-| “生成/翻译/转换/检查文档” | `.codex/workflows/document-only.md` |
-
-若用户没有指定工作流，按最小充分流程选择；外部发布、Git 提交或真实云资源变更必须另行获得明确授权。
-
-## 角色与并发
-
-原生角色入口位于 `.codex/agents/*.toml`，详细契约位于同名 Markdown：`sac_architect`、
-`sac_developer`、`sac_tester`、`sac_security`、`sac_documenter`、`sac_delivery`。
-
-- 仅并行执行互不依赖且文件范围不重叠的任务。
-- 区域开发可并行；测试与安全可并行；不同语言或站点文档可并行。
-- 并发槽不足时分批执行，不改变依赖顺序。
-- 每个子 Agent 必须返回：`status`、`summary`、`files_changed`、`checks_run`、`issues`、`handoff`。
-- 子 Agent 发现阻塞项时应停止相关写入并报告；主 Agent决定重试、修复或请求用户输入。
-
-## 文件所有权
-
-- 开发 Agent：仅修改分配给它的 `practices/{project}/<site>/<region>/<variant>/` 实现目录。
-- 文档 Agent：仅修改分配站点/语言的 `docs/` 文件。
-- 测试和安全 Agent：默认只读；除非主 Agent 明确要求修复，否则不得改文件。
-- 交付 Agent：仅在质量门禁通过且用户授权的范围内修改 `release/` 和版本记录，生成本地归档与校验和。
-- 主 Agent 负责共享文件、冲突处理、最终验证和 `.var/log/internal-changelog.md`。
-
-## 通用约束
-
-- 开始工作前检查 `git status --short`，保留用户已有修改。
-- 查找优先使用 `rg`/`rg --files`，编辑使用补丁方式。
-- Python 使用仓库根目录 `.venv-sac`。
-- 每批修改记录到 `.var/log/internal-changelog.md`；该文件不提交、不发布。
-- `reference/` 默认只读。
-- 测试凭证、AK/SK、Token、私有桶地址不得写入产物或日志。
-- 正式交付正确性不得依赖 `.codex/` 或 `.claude/`；它们都是本地协作资产。
+Python 使用仓库根目录 `.venv-sac`。每批修改记录到不提交、不发布的
+`.var/log/internal-changelog.md`。

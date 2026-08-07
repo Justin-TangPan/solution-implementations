@@ -149,7 +149,7 @@
 | solution_name | 解决方案名称，4-24个字符，支持小写字母、数字、-（中划线），必须以小写字母开头 | supabase |
 | ecs_flavor | 云服务器实例规格，x1.8u.16g（8vCPUs 16GiB）及以上推荐 | x1.8u.16g |
 | ecs_password | 云服务器密码，8-26位，至少包含大写字母、小写字母、数字和特殊字符中的三种 | / |
-| db_password | PostgreSQL 数据库密码，模板不限制字符类型并支持特殊字符；请使用高强度密码 | / |
+| db_password | PostgreSQL 数据库密码，8-24个字符，支持字母、数字和特殊字符（`~!^*-=_+,`），不支持 `@` | / |
 | system_disk_size | 系统盘大小（GB），高IO类型，取值范围：40-1024，Supabase建议100GB起步 | 100 |
 | bandwidth_size | 弹性公网带宽（Mbit/s），按流量计费，取值范围：1-300 | 300 |
 | charging_mode | 计费模式：postPaid（按需计费）或 prePaid（包年包月） | postPaid |

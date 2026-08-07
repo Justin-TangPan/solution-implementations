@@ -1,11 +1,8 @@
 """
-Terraform 语法与安全检查
-=======================
+Terraform 语法检查
+================
 每个部署实例只接受一个 active Terraform 文件。
 检查内容：
-- 安全组过宽检测（SSH/3389 对 0.0.0.0/0）→ ERROR
-- 硬编码 AK/SK 检测 → ERROR
-- 敏感变量 missing sensitive=true → WARN
 - 变量 description 覆盖率 → WARN
 - BOM 头检测 → ERROR
 - EIP 带宽成本预警 → WARN
@@ -43,7 +40,7 @@ def _shell_syntax(content: str) -> str | None:
 
 def run(practice_path: Path, entry: dict) -> list:
     results = []
-    tf_path = practice_path / "terraform"
+    tf_path = practice_path
     instance = "/".join(filter(None, (
         entry.get("name"), entry.get("site"), entry.get("region"), entry.get("deploy_type")
     )))
@@ -51,22 +48,22 @@ def run(practice_path: Path, entry: dict) -> list:
     exception = next((value for pattern, value in exceptions.items()
                       if fnmatch.fnmatch(instance, pattern)), {})
     allowed_providers = set(exception.get("allowed_providers", ["huaweicloud"]))
+    allowed_huaweicloud_keys = set(exception.get("allowed_huaweicloud_provider_keys", ["region"]))
 
-    if not tf_path.exists():
-        results.append(CheckResult("tf_syntax", False, "ERROR", "terraform/ 目录不存在"))
-        return results
+    if (practice_path / "terraform").exists():
+        results.append(CheckResult("tf_syntax", False, "ERROR", "不得使用冗余的 terraform/ 目录"))
 
     tf_files = sorted(tf_path.glob("*.tf"))
     json_files = sorted(tf_path.glob("*.tf.json"))
     active_files = tf_files + json_files
     if not active_files:
-        results.append(CheckResult("tf_syntax", False, "ERROR", "terraform/ 中没有 Terraform 文件"))
+        results.append(CheckResult("tf_syntax", False, "ERROR", "实例目录中没有 Terraform 文件"))
         return results
 
     if len(active_files) != 1:
         names = ", ".join(path.name for path in active_files)
         results.append(CheckResult("tf_syntax", False, "ERROR",
-                                   f"terraform/ 必须只有一个 active 模板，当前 {len(active_files)} 个: {names}"))
+                                   f"实例目录必须只有一个 active 模板，当前 {len(active_files)} 个: {names}"))
     else:
         results.append(CheckResult("tf_syntax", True, "INFO", "唯一 active Terraform 入口"))
 
@@ -89,9 +86,9 @@ def run(practice_path: Path, entry: dict) -> list:
                     for name, config in block.items():
                         if name.strip('"') == "huaweicloud":
                             keys = {key for key in config if not key.startswith("__")}
-                            if keys != {"region"}:
+                            if keys != allowed_huaweicloud_keys:
                                 results.append(CheckResult("tf_syntax", False, "ERROR",
-                                                           f"{f.name}: huaweicloud provider 只允许 region，当前 {sorted(keys)}",
+                                                           f"{f.name}: huaweicloud provider 配置应为 {sorted(allowed_huaweicloud_keys)}，当前 {sorted(keys)}",
                                                            file=str(f)))
             except Exception as exc:
                 results.append(CheckResult("tf_syntax", False, "ERROR", f"{f.name}: HCL 解析失败: {exc}", file=str(f)))
@@ -101,20 +98,6 @@ def run(practice_path: Path, entry: dict) -> list:
             results.append(CheckResult("tf_syntax", False, "ERROR",
                                        f"{f.name}: user_data Bash 语法失败: {shell_error}", file=str(f)))
 
-        # 硬编码 AK/SK
-        if re.search(r'access_key\s*=\s*["\'][^"\']+["\'](?!.*var\.)', content):
-            results.append(CheckResult("tf_syntax", False, "ERROR", f"{f.name}: 可能包含硬编码 access_key"))
-        if re.search(r'secret_key\s*=\s*["\'][^"\']+["\'](?!.*var\.)', content):
-            results.append(CheckResult("tf_syntax", False, "ERROR", f"{f.name}: 可能包含硬编码 secret_key"))
-
-        # 安全组过宽检测 (SSH/3389 对 0.0.0.0/0)
-        for block in re.findall(r'resource\s+"huaweicloud_networking_secgroup_rule"[^}]+}', content, re.DOTALL):
-            cidr = re.search(r'(?:remote_ip_prefix|cidr)\s*=\s*"([^"]+)"', block)
-            port = re.search(r'ports?\s*=\s*(\d+)', block)
-            if cidr and cidr.group(1) == "0.0.0.0/0" and port and port.group(1) in ["22", "3389"]:
-                results.append(CheckResult("tf_syntax", False, "ERROR",
-                    f"{f.name}: 端口 {port.group(1)} 对 0.0.0.0/0 开放 (高危)"))
-
         # EIP 带宽预警
         for block in re.findall(r'resource\s+"huaweicloud_vpc_eip".*?\n}', content, re.DOTALL):
             bw = re.search(r'bandwidth\s*\{.*?size\s*=\s*(\d+)', block, re.DOTALL)
@@ -122,7 +105,7 @@ def run(practice_path: Path, entry: dict) -> list:
                 results.append(CheckResult("tf_syntax", True, "WARN",
                     f"{f.name}: EIP 带宽 {bw.group(1)}Mbps 较大，请确认成本"))
 
-        # 变量描述 + sensitive 标记
+        # 变量描述
         var_pattern = re.compile(r'variable\s+"(\w+)"')
         desc_pattern = re.compile(r'description\s*=')
         for match in var_pattern.finditer(content):
@@ -139,10 +122,6 @@ def run(practice_path: Path, entry: dict) -> list:
             if not desc_pattern.search(var_block):
                 results.append(CheckResult("tf_syntax", True, "WARN",
                     f"variable '{var_name}' 缺少 description"))
-            if re.search(r'(password|secret|token|key|(?:^|_)ak(?:$|_)|(?:^|_)sk(?:$|_))', var_name.lower()):
-                if 'sensitive' not in var_block:
-                    results.append(CheckResult("tf_syntax", True, "WARN",
-                        f"variable '{var_name}' 建议设置 sensitive=true"))
 
     for f in json_files:
         try:

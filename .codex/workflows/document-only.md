@@ -1,28 +1,14 @@
-# document-only — SAC 文档专用流水线
+# document-only — Maintain Documentation
 
-## 输入
+兼容原工作流名；默认由 Builder 加载 `sac-documentation`：
 
-`project`；可选 `mode`（`generate`、`markdown`、`word`、`translate`、`convert`、
-`validate`、`retemplate`）、`input`、`site`、`locale`、`output`。
+```text
+Builder + Documentation → Reviewer（正式质量检查或发布前）
+```
 
-## 阶段
+Builder 从已验证 Terraform、架构合同和现有文档提取事实，按请求生成、维护、翻译、转换或检查
+部署指南与方案详情。只做小型参数说明时不启动额外 Agent；正式生成、跨语言更新或发布前检查
+再由 Reviewer 核对实现和文档一致性。
 
-1. 读取项目规则、`sac-documentation` 和目标 Practice；保留现有文件与目录布局。旧名
-   `sac-document-pipeline` 仅映射到该 Skill，不重复加载。
-2. 按模式提取项目、Markdown、Word 或 PDF，生成带来源和审核标记的统一文档模型。
-3. 生成/翻译正文；翻译前保护代码、命令、参数、URL、路径和专有词。
-4. 按配置分别渲染 Markdown 与 Word。`retemplate` 只改变格式，不重写正文。
-5. 执行敏感信息、结构、技术事实、Word 和双语一致性检查，写结构化报告及人工审核清单。
-6. error 或阻断审核项存在时停止在 `output/document-pipeline/<project>/`；通过后才允许由人工选择
-   是否复制到 Practice 正式 docs 目录。IDP 导入和上架始终是人工/显式授权步骤。
-
-## 离线与降级
-
-- 默认离线，不上传代码或文档；外部翻译 provider 必须显式配置。
-- 缺少 Word/PDF 可选依赖时保留标准稿并给出明确错误，Markdown/项目分析不受阻。
-- PDF 仅为迁移兜底；无法恢复的页码、表格或图片写入待人工确认项，不静默猜测。
-
-## 返回
-
-`standard_document`、`markdown_files`、`docx_files`、`languages`、`quality_report`、
-`errors`、`warnings`、`manual_review_items`、`ready_for_manual_review`。
+`sac-document-pipeline` 仅是旧名兼容，页面营销任务另行使用 Optional `sac-page-enhance`。
+不得臆造参数、价格、功能、URL 或云测结论，也不得为迁就文档修改 Terraform 行为。

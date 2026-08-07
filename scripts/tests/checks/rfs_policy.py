@@ -30,7 +30,7 @@ def run(practice_path: Path, entry: dict) -> list[CheckResult]:
     if not policy:
         return [CheckResult("rfs_policy", True, "INFO", "未配置实例级 RFS 策略（跳过）")]
 
-    tf_files = sorted((practice_path / "terraform").glob("*.tf"))
+    tf_files = sorted(practice_path.glob("*.tf"))
     text = "\n".join(path.read_text(encoding="utf-8-sig", errors="replace") for path in tf_files)
     errors: list[str] = []
 

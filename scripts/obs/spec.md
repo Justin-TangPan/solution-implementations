@@ -68,7 +68,7 @@ manifest，否则第二次上传会覆盖第一次上传。
   "generated_at": "2026-06-30T12:00:00Z",
   "file_count": 12,
   "files": [
-    { "path": "terraform/deploying-litellm.tf", "size": 4096, "sha256": "..." },
+    { "path": "deploying-litellm.tf", "size": 4096, "sha256": "..." },
     { "path": "scripts/install_litellm.sh", "size": 2048, "sha256": "..." }
   ]
 }

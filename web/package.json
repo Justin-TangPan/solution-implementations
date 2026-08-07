@@ -1,9 +1,10 @@
 {
   "name": "web",
-  "version": "0.11.0",
+  "version": "0.14.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node ../scripts/gen-practices-index.mjs",
     "build": "node scripts/prepare-downloads.mjs && next build",
     "start": "python3 -m http.server ${PORT:-7878} --bind 0.0.0.0 -d out",
     "lint": "eslint"

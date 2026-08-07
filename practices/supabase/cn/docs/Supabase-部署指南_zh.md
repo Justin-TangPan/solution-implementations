@@ -10,7 +10,7 @@
 
 ### 1.1 应用场景
 
-本方案在华为云 Flexus X 实例上通过 Docker Compose 一键部署 Supabase — 开源的 Firebase 替代品。提供 PostgreSQL 数据库、用户认证、自动生成 REST/GraphQL API、实时数据订阅、文件存储和 Edge Functions 等完整后端服务。正式模板直接使用 Supabase 官方 `docker/` 目录，固定到上游提交 [`00ecb5305965ff85e1b5757e34a8eb5eb787f6f6`](https://github.com/supabase/supabase/tree/00ecb5305965ff85e1b5757e34a8eb5eb787f6f6/docker)，避免上游滚动更新造成部署结果漂移。
+本方案在华为云 Flexus X 实例上通过 Docker Compose 一键部署 Supabase — 开源的 Firebase 替代品。提供 PostgreSQL 数据库、用户认证、自动生成 REST/GraphQL API、实时数据订阅、文件存储和 Edge Functions 等完整后端服务。正式模板直接使用 Supabase `v1.26.07` 的官方 `docker/` 目录，固定到上游提交 [`949a57d2854b7fcadc0d621cb7fffa167506d581`](https://github.com/supabase/supabase/tree/949a57d2854b7fcadc0d621cb7fffa167506d581/docker)，避免上游滚动更新造成部署结果漂移。
 
 典型应用场景包括：
 
@@ -149,8 +149,8 @@
 | solution_name | 解决方案名称，4-24个字符，支持小写字母、数字、-（中划线），必须以小写字母开头 | supabase |
 | ecs_flavor | 云服务器实例规格，x1.8u.16g（8vCPUs 16GiB）及以上推荐 | x1.8u.16g |
 | ecs_password | 云服务器密码，8-26位，至少包含大写字母、小写字母、数字和特殊字符中的三种 | / |
-| db_password | PostgreSQL 数据库密码，模板不限制字符类型并支持特殊字符；请使用高强度密码 | / |
-| system_disk_size | 系统盘大小（GB），高IO类型，取值范围：40-1024，Supabase建议100GB起步 | 100 |
+| db_password | PostgreSQL 数据库密码，8-24个字符，支持字母、数字和特殊字符（`~!^*-=_+,`），不支持 `@` | / |
+| system_disk_size | 系统盘大小（GB），通用型SSD，取值范围：40-1024，Supabase建议100GB起步 | 100 |
 | bandwidth_size | 弹性公网带宽（Mbit/s），按流量计费，取值范围：1-300 | 300 |
 | charging_mode | 计费模式：postPaid（按需计费）或 prePaid（包年包月） | postPaid |
 | charging_unit | 订购周期类型：month（月）或 year（年），仅 prePaid 模式生效 | month |
@@ -326,7 +326,7 @@ docker compose exec -T studio sh -c 'test -d /app/snippets && test -w /app/snipp
 
 - [Supabase 官方文档](https://supabase.com/docs)
 - [Supabase GitHub](https://github.com/supabase/supabase)
-- [正式模板固定的 Supabase 官方 Docker 提交](https://github.com/supabase/supabase/tree/00ecb5305965ff85e1b5757e34a8eb5eb787f6f6/docker)
+- [正式模板固定的 Supabase v1.26.07 官方 Docker 提交](https://github.com/supabase/supabase/tree/949a57d2854b7fcadc0d621cb7fffa167506d581/docker)
 - [Supabase 自托管指南](https://supabase.com/docs/guides/self-hosting/docker)
 - [华为云 RFS](https://support.huaweicloud.com/rfs/)
 

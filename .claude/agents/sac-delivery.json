@@ -1,5 +1,8 @@
 {
   "name": "sac-delivery",
+  "status": "deprecated",
+  "format": "legacy-custom-agent-json",
+  "replacement": ".claude/agents/builder.md + .claude/agents/reviewer.md",
   "description": "SAC 交付 Agent — 本地打包与校验",
   "roles": [
     "Release 目录组织与归档打包",
@@ -13,14 +16,17 @@
   ],
   "inputs": [
     "开发 Agent 的 practices/ 文件",
-    "文档 Agent 的 README 和业务文档",
+    "文档 Agent 的部署指南、方案详情和质量报告",
     "安全审查 Agent 的审计报告（确认通过）",
-    "测试 Agent 的验证报告（确认通过）"
+    "测试 Agent 的验证报告（确认通过）",
+    "绑定精确候选身份与校验和的用户云测证据",
+    "本地打包的用户明确授权"
   ],
   "outputs": [
     "release/{project}/ 目录（完整本地交付包）",
     "release/{project}/{project}.zip（归档包）",
     "release/{project}/SHA256SUMS（校验和）",
-    "本地交付验证报告"
+    "本地交付验证报告（source_comparison、blocked_reasons）",
+    "checksums 与通用 handoff：status、summary、files_changed、checks_run、issues、handoff"
   ]
 }

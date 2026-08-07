@@ -163,7 +163,7 @@ Step 2 Click "Next", confirm the basic configuration, and set the ECS password a
 | solution_name | Solution name, 4-24 chars, lowercase letters/digits/hyphens, must start with a lowercase letter | supabase |
 | ecs_flavor | ECS flavor, c7n.2xlarge.2 (8vCPUs 16GiB) or above recommended. Change to match available flavors in target region | c7n.2xlarge.2 |
 | ecs_password | ECS root password, 8-26 chars, at least 3 of: uppercase, lowercase, digits, special characters | / |
-| db_password | PostgreSQL password with no template-side character whitelist; special characters are supported. Use a strong password | / |
+| db_password | PostgreSQL password, 8-24 characters, using letters, digits, and `~!^*-=_+,`; `@` is not supported | / |
 | system_disk_size | System disk size (GB), high-IO type, range: 40-1024, 100GB recommended for Supabase | 100 |
 | bandwidth_size | EIP bandwidth (Mbit/s), traffic billing, range: 1-300 | 300 |
 | charging_mode | Billing mode: postPaid (pay-per-use) or prePaid (subscription) | postPaid |

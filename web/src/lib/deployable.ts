@@ -4,10 +4,15 @@ import { join, relative } from "node:path"
 
 const ROOT = join(process.cwd(), "..")
 const PRACTICES_DIR = join(ROOT, "practices")
+const FORMAL = new Set<string>(JSON.parse(readFileSync(join(ROOT, "project.config.json"), "utf8")).formal.practices)
 
 function dirs(p: string): string[] {
   if (!existsSync(p)) return []
   return readdirSync(p).filter(n => statSync(join(p, n)).isDirectory())
+}
+
+function hasTerraform(p: string): boolean {
+  return existsSync(p) && readdirSync(p).some(name => name.endsWith(".tf") || name.endsWith(".tf.json"))
 }
 
 export type DeployablePractice = {
@@ -46,7 +51,7 @@ function scanTfFiles(slug: string): DeployablePractice["tfFiles"] {
   const walk = (directory: string) => readdirSync(directory, { withFileTypes: true }).forEach(entry => {
     const file = join(directory, entry.name)
     if (entry.isDirectory()) walk(file)
-    else if (entry.name.endsWith(".tf")) {
+    else if (entry.name.endsWith(".tf") || entry.name.endsWith(".tf.json")) {
       const content = readFileSync(file, "utf8")
       result.push({
         path: relative(root, file),
@@ -60,8 +65,12 @@ function scanTfFiles(slug: string): DeployablePractice["tfFiles"] {
   return result.sort((a, b) => a.path.localeCompare(b.path))
 }
 
+function hasMarkdown(directory: string): boolean {
+  return readdirSync(directory, { withFileTypes: true }).some(entry => entry.isDirectory() ? hasMarkdown(join(directory, entry.name)) : entry.name.endsWith(".md"))
+}
+
 export function getDeployablePractices(): DeployablePractice[] {
-  const slugs = dirs(PRACTICES_DIR).filter(s => !s.startsWith(".")).sort()
+  const slugs = dirs(PRACTICES_DIR).filter(slug => FORMAL.has(slug)).sort()
   return slugs.map(slug => {
     const regions = scanRegions(slug)
     const sites = [...new Set(regions.map(r => r.site))]
@@ -76,15 +85,14 @@ export function getDeployablePractices(): DeployablePractice[] {
         baseDir = join(PRACTICES_DIR, slug, r.site, r.code)
       }
       if (existsSync(baseDir)) {
-        for (const v of dirs(baseDir)) {
-          variants.add(v)
-        }
+        if (hasTerraform(baseDir)) variants.add("standard")
+        for (const v of dirs(baseDir)) if (hasTerraform(join(baseDir, v))) variants.add(v)
       }
     }
 
     const tfFiles = scanTfFiles(slug)
 
-    const hasDocs = existsSync(join(PRACTICES_DIR, slug, "cn", "docs"))
+    const hasDocs = hasMarkdown(join(PRACTICES_DIR, slug))
 
     return { slug, sites, regions, variants: [...variants].sort(), tfFiles, hasDocs }
   })

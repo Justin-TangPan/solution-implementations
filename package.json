@@ -1,7 +1,7 @@
 {
   "name": "solution-practices",
-  "version": "0.11.0",
-  "description": "SAC multi-agent toolkit and Huawei Cloud Solution Practices for Codex",
+  "version": "0.14.0",
+  "description": "Solution Practice engineering assets and Terraform workflows for AI coding tools",
   "type": "module",
   "bin": {
     "sac": "bin/sac.js"
@@ -10,23 +10,31 @@
     "bin/",
     "src/",
     "templates/",
+    "assets/templates/hermes_agent_inline.tf",
     ".codex/config.toml",
     ".codex/agents/*.md",
     ".codex/agents/*.toml",
     ".codex/workflows/*.md",
-    "skills/**/SKILL.md",
-    "skills/**/agents/openai.yaml",
-    "skills/reference/*.md",
+    ".claude/CLAUDE.md",
+    ".claude/agents/*.md",
+    ".claude/agents/*.json",
+    ".claude/skills/sac-*/SKILL.md",
+    ".claude/skills/query-huawei-cloud-prices/SKILL.md",
+    ".claude/workflows/*.js",
+    "skills/**/*",
     "skills-index.json",
-    "practices/litellm/**/*",
-    "practices/supabase/**/*",
-    "practices/openjiuwen/**/*",
+    "practices/**/*",
     "scripts/tests/**/*.py",
     "scripts/document_pipeline/**/*.py",
     "scripts/document_pipeline/config/*.json",
     "scripts/document_pipeline/templates/*.docx",
     "requirements-document-pipeline.txt",
     "docs/contracts/*.md",
+    "docs/agent-skill-migration.md",
+    "docs/coding-agent-adapters.md",
+    "docs/project-boundaries.md",
+    "docs/project-state.md",
+    "docs/source-of-truth.md",
     "reference/docs/*.md",
     "project.config.json",
     "README.md",
@@ -43,7 +51,7 @@
   },
   "keywords": [
     "codex",
-    "multi-agent",
+    "ai-coding-tools",
     "terraform",
     "huawei-cloud",
     "rfs",
@@ -60,6 +68,6 @@
   "license": "MIT",
   "sac": {
     "manifestSchemaVersion": 1,
-    "contentVersion": "2026.07.21"
+    "contentVersion": "2026.08.07"
   }
 }

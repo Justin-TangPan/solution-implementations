@@ -39,22 +39,17 @@ and must never be logged or copied into documents.
 - `generate_extension.py`: RFS extension helper.
 - `validate_template.py`: template validation helper.
 
-## Experimental
+## General development tools
 
-- `gen-practices-index.mjs`: web visualization catalog helper. `web/` is not part of the formal release gate yet.
+- `gen-practices-index.mjs`: generates the auxiliary Web catalog from `project.config.json` and
+  `practices/`. CI validates the generated index and Web build, but Web is not a release authority.
 - `skills-vector-index.py`: skill search/index helper.
 
-## Deprecated compatibility scripts
+## Archived historical scripts
 
-The following one-off scripts contain historical assumptions. They are retained for compatibility and
-regression reference, but formal workflows must use `scripts.document_pipeline` and must not call them:
+Confirmed one-off DOCX migration scripts are under `archive/docx-migrations-2026-06/`; the one-time security
+migration is under `archive/security-migration-2026-07/`. Formal workflows and Agents must not scan or call
+`scripts/archive/`. See each directory's README for the original purpose, replacement, and deletion stage.
 
-- `fix_one_docx.py`
-- `gen_docx.py`
-- `gen_litellm_sac_docx.py`
-- `gen_sac_docx.py`
-- `quick_fix_titles.py`
-- `update_docx_titles.py`
-
-Do not delete these scripts as part of incremental migration. Move them to `scripts/archive/` only in a
-dedicated compatibility cleanup after their remaining consumers have been verified.
+`package_solution.sh`, `generate_extension.py`, `validate_template.py`, and the OBS compatibility wrappers
+remain in place pending compatibility confirmation; they are not part of the formal quality gate.

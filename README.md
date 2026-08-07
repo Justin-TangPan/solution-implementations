@@ -2,34 +2,30 @@
 
 <img src="assets/branding/sac-logo.png" alt="SAC — Solution Practices" width="720">
 
-### Solution Practices · 从系统评估到本地交付包
+### 面向 AI 编程工具的解决方案实践工程包
 
-**v0.11.0** · Huawei Cloud · Codex 多 Agent
+**Terraform / RFS · Codex / Claude Code**
 
 </div>
 
-SAC 是华为云 Solution Practice 工程工具包。主 Agent 负责系统评估、初版方案、用户确认和
-架构合同冻结；六个轻量子 Agent 分别负责实现、测试、安全、文档和本地交付。
+SAC 可以配合 Codex、Claude Code 等 AI Coding Agent，辅助完成开源项目评估、云架构设计、
+Terraform 模板开发、静态验证和交付物生成。
+核心业务价值是生产、维护和验证 Solution Practice 的 Terraform 与配套交付物。
 
-正式结果是经过验证的本地 Terraform/文档交付包。外部发布、Git 操作和真实云资源变更不在
-默认流程内。
+本仓库不直接调用大模型，也不提供独立 Agent Runtime 或多 Agent 调度引擎。Agent、Skill 和
+Workflow 是供 Codex、Claude Code 等宿主工具读取的配置、提示词和工程规则；CLI 负责安装、
+更新、检查和管理这些工程资产。
 
-## 当前正式内容
-
-`project.config.json` 是正式范围的唯一清单：
-
-| Practice | 站点 / Region | 形态 |
+| 输入 | 处理过程 | 输出 |
 |---|---|---|
-| LiteLLM | `cn-north-4`；多个国际 Region | standard / ha |
-| Supabase | `cn-north-4`、`ap-southeast-1` | standard |
-| openJiuwen | `cn-north-4` | agent-studio / jiuwenswarm |
+| 开源项目仓库地址；已有解决方案需求；待开发或维护的 Terraform 方案 | 项目与依赖分析 → 云架构设计 → Terraform 开发 → 静态验证 → 文档与交付物生成 → 用户侧云环境验证 | 架构分析；Terraform 模板；部署文档；静态测试结果；待云测说明；本地交付包 |
 
-## 安装
+默认只操作本地文件。静态检查不等于真实云部署验证；真实云资源变更、Git 提交、外部发布和
+npm 发布均需单独授权。
 
-### 当前可用方式：从源码安装 CLI
+## Quick Start（不超过 3 分钟）
 
-截至 2026-07-21，`solution-practices` 尚未发布到公共 npm Registry。不要直接执行
-`npm install -g solution-practices`。
+需要 Node.js 20+。从源码安装当前 CLI：
 
 ```bash
 git clone https://github.com/Justin-TangPan/solution-practices.git
@@ -37,234 +33,126 @@ cd solution-practices
 npm ci
 npm test
 npm link
+```
 
+在需要接入 SAC 工程资产的目标仓库中执行：
+
+```bash
 cd /path/to/your-project
 sac init
 sac doctor
-```
-
-不希望创建全局链接时，可从目标项目直接调用源码 CLI：
-
-```bash
-cd /path/to/your-project
-node /path/to/solution-practices/bin/sac.js init
-node /path/to/solution-practices/bin/sac.js doctor
-```
-
-也可以先检查 npm 包内容，再安装本地 tarball：
-
-```bash
-cd /path/to/solution-practices
-npm pack --dry-run
-npm pack
-npm install --global ./solution-practices-0.11.0.tgz
-```
-
-未来 Registry 发布后，先确认版本存在，再使用标准命令：
-
-```bash
-npm view solution-practices version
-npm install --global solution-practices
-```
-
-### `sac init` 安装什么
-
-```text
-AGENTS.md                  # 合并 SAC 调度规则，不覆盖用户正文
-.codex/agents/             # 6 个子 Agent 定义和角色合同
-.codex/workflows/          # 5 个工作流
-.codex/skills/             # Codex 可发现的 Skills
-skills/                    # 供规则内部路径和其他 Agent 使用的兼容镜像
-.sac/project.config.json   # 安装时的正式范围基线
-.sac/manifest.json         # 文件归属、版本和校验和
-.sac/tooling/              # 隔离安装的文档流水线、测试器和 Python 依赖清单
-docs/contracts/            # 目录与交付合同
-```
-
-安装不会通过 `postinstall` 修改工作区。已有用户文件发生冲突时，`sac update` 写入
-`.sac-new` 候选，不会静默覆盖。
-
-```bash
 sac list
-sac update --dry-run
-sac update
-sac doctor --json
-sac install practice litellm
 ```
 
-执行 `sac init` 或 `sac update` 后，重新启动 Codex 会话，让 Skill 和 Agent 定义重新发现。
-
-## 用户如何使用 Skills
-
-### 推荐：直接描述任务
-
-启动 Codex 后使用自然语言。SAC 会按阶段加载最小 Skill 集：
-
-```text
-我想把 https://github.com/<owner>/<project> 做成华为云 Solution Practice。
-先做系统评估和初版方案，再向我确认站点、Region 和部署形式。
-```
-
-主 Agent 必须先返回系统评估与初版方案，再集中确认尚未明确的输入；合同冻结前不会派发
-Developer。用户不需要一开始就猜测 ECS 规格、端口或全部云服务参数。
-
-### 需要精确能力时：显式点名 Skill
-
-```text
-使用 $sac-business-evaluator 评估这个项目是否值得做。
-使用 $sac-technical-evaluator 给出华为云技术候选方案。
-使用 $sac-testing 只读检查 practices/litellm。
-使用 $sac-security 审计该候选模板。
-使用 $sac-documentation 生成国际站中英文 Markdown，并生成 DOCX。
-使用 $sac-page-enhance 优化这个现有方案页面并导出 Excel。
-使用 $sac-delivery 组装已经通过门禁的本地交付包。
-```
-
-`sac-document-pipeline` 只保留旧名称兼容。新任务统一使用 `sac-documentation`，不要同时加载两者。
-
-### Skill 职责与触发边界
-
-| Skill | 职责 | 默认加载 |
-|---|---|---|
-| `sac-project-rules` | 项目事实源、主 Agent 架构门、目录、角色边界和本地交付总纲 | 所有 SAC 角色 |
-| `sac-technical-evaluator` | 上游架构、华为云适配、资源、安全、成本和运维候选评估 | Architect |
-| `sac-business-evaluator` | “值不值得做”的四维业务预筛 | 仅业务价值请求 |
-| `sac-deep-search` | 多来源、争议或跨产品系统研究 | 仅复杂研究请求 |
-| `sac-rfs-practices` | 冻结合同后的 Terraform/RFS、内联 `user_data` 和区域实现 | Developer |
-| `sac-testing` | 目录、模板、合同一致性和正式质量门禁 | Tester |
-| `sac-security` | 凭证、网络、容器、数据和供应链审计 | Security |
-| `sac-documentation` | Markdown 维护/生成、双语翻译、可选 DOCX、转换与门禁 | Documenter |
-| `sac-document-pipeline` | 旧名称兼容，转交 `sac-documentation` | 不默认加载 |
-| `sac-page-enhance` | 已有页面提取、证据化营销文案、比较和 Excel | 仅页面任务 |
-| `sac-delivery` | 本地 release、确定性 ZIP、SHA-256 和源文件核对 | Delivery |
-
-每个角色默认只加载两个 Skill：
-
-| 角色 | 必需 Skill | 条件 Skill |
-|---|---|---|
-| Architect | project-rules + technical-evaluator | business-evaluator、deep-search |
-| Developer | project-rules + rfs-practices | RFS 按条件引用的 Region/Docker 规则 |
-| Tester | project-rules + testing | 无 |
-| Security | project-rules + security | 无 |
-| Documenter | project-rules + documentation | page-enhance |
-| Delivery | project-rules + delivery | 无 |
-
-## 常用任务
-
-### 完整 Solution Practice
-
-```text
-把 <官方仓库 URL> 做成华为云 Solution Practice，目标是完整本地交付包。
-```
-
-流程：系统评估 → 初版方案 → 用户确认 → 架构合同 → 实现 → 测试与安全 → 用户云测
-→ 正式提升 → 文档 → 本地 ZIP 与 SHA256SUMS。
-
-### 快速架构与实现原型
-
-```text
-为 <项目> 做华为云快速原型，先完成架构合同和 standard 模板，不进入交付。
-```
-
-### 只读审计
-
-```text
-只读审计 practices/<project>，并行执行测试和安全检查，不自动修复。
-```
-
-### 文档
-
-```text
-为 practices/<project> 生成国际站 zh-cn/en-us 部署指南和方案详情；DOCX 也需要。
-```
-
-### 本地交付
-
-```text
-测试、安全、文档和用户云测证据已经齐全，请生成本地交付包。
-```
-
-Delivery 只生成 `release/<project>/`、ZIP 和 `SHA256SUMS`。它不生成托管 URL，也不执行上传。
-
-## 工作流
-
-| 工作流 | 使用场景 | 结束位置 |
-|---|---|---|
-| `full-pipeline` | 新方案完整交付 | 验证后的本地包 |
-| `architect-develop` | 架构与实现原型 | candidate Terraform |
-| `audit` | 测试和安全审计 | 只读审计报告 |
-| `document-only` | 生成、翻译、转换或验证文档 | 文档审核候选 |
-| `delivery-only` | 已有完整门禁证据 | ZIP + SHA256SUMS |
-
-Codex 根据 `AGENTS.md` 和 `.codex/workflows/` 编排；`.claude/` 保留等价兼容入口。
-
-## 文档 CLI
-
-源码仓库直接使用根目录流水线：
+不使用全局链接时，可直接调用源码入口：
 
 ```bash
-# 只生成国际站 Markdown
-.venv-sac/bin/python -m scripts.document_pipeline generate --project litellm --site intl
-
-# 国际站 Markdown + DOCX
-.venv-sac/bin/python -m scripts.document_pipeline generate --project litellm --site intl --docx
-
-.venv-sac/bin/python -m scripts.document_pipeline analyze --project litellm
-.venv-sac/bin/python -m scripts.document_pipeline translate --project litellm --locale en-us
-.venv-sac/bin/python -m scripts.document_pipeline render-word --input guide.md --template template.docx --source source.docx
-.venv-sac/bin/python -m scripts.document_pipeline validate --project litellm
-.venv-sac/bin/python -m scripts.document_pipeline convert --input legacy.docx
+node /path/to/solution-practices/bin/sac.js init
 ```
 
-通过 `sac init` 接入其他仓库时，流水线位于 `.sac/tooling`，首次使用先建立宿主项目自己的环境：
+`sac init` 安装 Codex Adapter、Claude Code Adapter、共享 SAC Core 和隔离工具链；不会通过 `postinstall`
+修改项目，也不会静默覆盖用户文件。更新冲突会写为相邻的 `.sac-new` 文件供人工检查。
+初始化或更新后，请重新启动 Agent 会话以重新发现工程资产。
+
+当前公开命令：
 
 ```bash
-python -m venv .venv-sac
-.venv-sac/bin/python -m pip install -r .sac/tooling/requirements-document-pipeline.txt
-PYTHONPATH=.sac/tooling .venv-sac/bin/python -m scripts.document_pipeline generate --project <project> --site <cn|intl|all> [--docx]
-PYTHONPATH=.sac/tooling .venv-sac/bin/python -m scripts.tests.runner
+sac init
+sac install codex|claude|all|skills
+sac install practice <name>
+sac update [--dry-run]
+sac list [--json]
+sac doctor [--json]
 ```
 
-DOCX 默认不生成，只有配置要求或用户明确传入 `--docx` 时才进入交付门禁。
+## SAC Core 与 Coding Agent Adapter
 
-## 测试
+根 `skills/` 维护平台无关的五类能力：Project、Architecture、Implementation、Quality 和
+Documentation。Codex Adapter 负责 `AGENTS.md`、`.agents/skills/` 和 `.codex/`；Claude Code
+Adapter 负责 `.claude/CLAUDE.md`、`.claude/skills/` 和原生 Subagent。两端共享业务规则，
+但不共享 Agent 文件、frontmatter 或上下文加载方式。
+
+| 使用方式 | 安装命令 | 原生入口 |
+|---|---|---|
+| Codex | `sac install codex` | `AGENTS.md`、`.agents/skills/`、`.codex/agents/` |
+| Claude Code | `sac install claude` | `.claude/CLAUDE.md`、`.claude/skills/`、`.claude/agents/*.md` |
+| 两者 | `sac init` 或 `sac install all` | 两套 Adapter 并存，共享根 `skills/` |
+
+安装或更新后重启对应 Agent 会话。平台差异与迁移关系见
+[Coding Agent 适配](docs/coding-agent-adapters.md)和
+[Agent/Skill 迁移](docs/agent-skill-migration.md)。
+
+## 使用方式
+
+向已加载这些工程资产的 Codex 或 Claude Code 描述目标，例如：
+
+```text
+评估 https://github.com/<owner>/<project>，给出华为云架构方案；
+确认部署决策后开发 Terraform，执行静态验证并生成本地交付物。
+```
+
+工程流程为：
+
+```text
+系统评估 → 初版方案 → 用户确认 → 架构合同 → Terraform 实现 → 静态测试 → 文档 → 本地交付
+```
+
+架构合同冻结前不开始实现。用户侧云测是单独阶段，其证据必须绑定到精确模板版本。
+
+## 正式范围与交付物
+
+正式 Practice 范围只由 [`project.config.json`](project.config.json) 的 `formal.practices` 定义；
+`sac list` 和 Web 目录均从该范围读取。README 不再维护第二份项目清单。
+
+每个正式 Practice 的核心交付物是：
+
+- 每个 `site/region[/variant]` 的 Terraform；
+- 每个站点的 Deployment Guide；
+- 每个站点的 Solution Details。
+
+`.extension`、DOCX、ZIP 和校验和按配置或明确请求生成。
+
+## 仓库结构
+
+```text
+practices/                 # 正式 Terraform 与站点文档
+project.config.json        # 正式范围与项目级策略的唯一事实源
+skills/                    # 平台无关 SAC Core 与兼容入口的唯一权威源
+.agents/skills/            # Codex 原生 Skill 发现入口
+.codex/                    # Codex Adapter
+.claude/                   # Claude Code Adapter 与旧入口兼容层
+src/ bin/                  # CLI 安装、更新与诊断
+scripts/tests/             # Practice 静态质量门禁
+scripts/document_pipeline/ # 文档生成、转换与检查
+scripts/archive/           # 禁止正式流程调用的历史脚本
+release/                   # 本地交付产物
+web/                       # 辅助性只读展示层
+```
+
+## 开发与验证
 
 ```bash
+npm ci
 npm test
+.venv-sac/bin/python -m unittest discover -s scripts/tests -p 'test_*.py'
 .venv-sac/bin/python -m scripts.tests.runner
-cd web && npm run lint && npm run build
+npm ci --prefix web
+npm run lint --prefix web
+npm run build --prefix web
+npm run pack:check
 ```
 
-静态检查通过不代表真实云部署成功。候选模板必须由用户在目标华为云环境验证，并将结果绑定到
-精确候选版本。
+Python 门禁使用 HCL 解析和 `bash -n` 做离线静态检查，不执行 `terraform init`、`plan` 或
+`apply`，不创建云资源，也不证明模板已在真实云环境成功部署。
 
-## Web 工作台
+## 项目事实与边界
 
-```bash
-cd web
-npm install
-npm run dev
-```
+- [事实源说明](docs/source-of-truth.md)
+- [项目能力边界](docs/project-boundaries.md)
+- [项目状态](docs/project-state.md)
+- [Practice 目录合同](docs/contracts/practice-layout.md)
+- [npm 分发合同](docs/contracts/npm-distribution.md)
+- [SAC 项目规则](skills/sac-project/SKILL.md)
+- [版本记录](CHANGELOG.md)
 
-Web 展示正式 Practice、质量快照、Skill 目录和 Agent 绑定。它是只读展示层；Skill 实际加载以
-`.codex/agents/` 角色合同为准，正式范围以 `project.config.json` 为准。
-
-## 目录
-
-```text
-practices/<project>/
-├── cn/<region>/<variant>/terraform/deploying-<project>.tf
-├── cn/docs/
-├── intl/<region>/<variant>/terraform/deploying-<project>.tf
-└── intl/docs/{zh-cn,en-us}/
-
-skills/                    # 11 个 SAC Skill 与条件 reference
-.codex/agents/             # Codex 子 Agent
-.codex/workflows/          # Codex 工作流
-.claude/                   # Claude Code 兼容资产
-scripts/tests/             # 正式静态门禁
-scripts/document_pipeline/ # 文档模型、渲染与检查
-web/                       # 只读工作台
-```
-
-版本记录见 [CHANGELOG.md](CHANGELOG.md)。
+License: [MIT](LICENSE)

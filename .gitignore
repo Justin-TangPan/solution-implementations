@@ -79,6 +79,12 @@ web/public/downloads/
 # ============================================
 .var/
 
+# Local agent state and package artifacts
+.codex/goals/
+.hermes/
+.loopx/
+*.tgz
+
 # ============================================
 # Claude Code (project-specific, not shared)
 # ============================================

@@ -11,7 +11,7 @@ export function ArchitectureWorkspace({ snapshot }: { snapshot: WorkbenchSnapsho
   const [slug, setSlug] = useState(snapshot.practices[0]?.slug ?? "litellm")
   const practice = snapshot.practices.find(item => item.slug === slug) ?? snapshot.practices[0]
   const [variant, setVariant] = useState(practice?.hasHA ? "ha" : "standard")
-  const profile = useMemo(() => getArchitectureProfile(slug, variant) ?? getArchitectureProfile("litellm"), [slug, variant])!
+  const profile = useMemo(() => getArchitectureProfile(slug, variant), [slug, variant])
   const [selected, setSelected] = useState(profile.nodes[0]?.id)
   const node = profile.nodes.find(item => item.id === selected) ?? profile.nodes[0]
   const checks = snapshot.audit.results.filter(item => item.practice.startsWith(`${slug}/`))

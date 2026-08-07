@@ -20,7 +20,7 @@ export function DeliveryReadiness({ snapshot }: { snapshot: WorkbenchSnapshot })
     { name: "需求与合同", status: "unknown", summary: "等待用户确认架构合同", details: ["目标 Region、Variant、文档语言尚未形成持久任务", "当前页面只提供规划入口，不执行 Agent"] },
     { name: "架构", status: deployable ? "ready" : "blocked", summary: deployable ? "已发现部署实例与架构基线" : "未发现部署实例", details: ["进入架构工作区查看资源拓扑、变量和风险", "拓扑是规则推导视图，不是实时云状态"] },
     { name: "实现", status: deployable?.tfFiles.length ? "ready" : "blocked", summary: deployable?.tfFiles.length ? `${deployable.tfFiles.length} 个 Terraform 文件已发现` : "缺少 Terraform 入口", details: deployable?.tfFiles.map(file => file.path) ?? [] },
-    { name: "测试与安全", status: errors ? "blocked" : warnings ? "warning" : "ready", summary: errors ? `${errors} 个错误阻断交付` : warnings ? `${warnings} 个警告待审阅` : "质量门禁无错误", details: audit.slice(0, 6).flatMap(item => item.items.filter(check => check.severity !== "INFO").slice(0, 1).map(check => `${item.practice}: ${check.message}`)) },
+    { name: "测试与安全", status: !audit.length ? "unknown" : errors ? "blocked" : warnings ? "warning" : "ready", summary: !audit.length ? "未发现该方案的质量门禁结果" : errors ? `${errors} 个错误阻断交付` : warnings ? `${warnings} 个警告待审阅` : "静态质量门禁无错误", details: audit.slice(0, 6).flatMap(item => item.items.filter(check => check.severity !== "INFO").slice(0, 1).map(check => `${item.practice}: ${check.message}`)) },
     { name: "文档", status: deployable?.hasDocs ? "ready" : "blocked", summary: deployable?.hasDocs ? "已发现正式 Markdown 文档" : "缺少站点级文档", details: ["部署指南与方案详情必须按站点/语言规则归档", "文档来源可从方案详情页下钻"] },
     { name: "交付", status: release ? "ready" : "unknown", summary: release ? "已发现本地交付包" : "等待生成本地交付包", details: ["正式交付止于本地 release 归档与 SHA-256 校验和", "外部发布不属于本项目交付流程"] },
   ], [deployable, errors, warnings, audit, release])

@@ -1,67 +1,11 @@
 ---
 name: sac-business-evaluator
-description: 从服务端属性、营销价值、场景价值和云上部署价值四个维度，为主 Agent 提供只读业务可行性评估；评估结果不能自动启动开发。
+description: Deprecated compatibility alias for the former standalone SAC business pre-screen. Route new-Practice business feasibility, evidence, scoring, and go/no-go input to sac-architecture.
 ---
 
-# 解决方案实践业务评估
+# SAC Business Evaluator Compatibility Alias
 
-本 Skill 在技术评估之前回答“值不值得做”，只向主 Agent 提供决策输入，不创建项目、不修改文件、不启动开发。
+This legacy name is retained for compatibility. Load and follow the business-feasibility section of
+`skills/sac-architecture/SKILL.md`; load the rest of that Skill when architecture work continues.
 
-## 四维评分
-
-每个维度按 0–10 分评分，等权计算总分：
-
-| 维度 | 核心问题 | 典型否决信号 |
-|---|---|---|
-| D1 服务端属性 | 能否无界面、持续地作为服务运行？ | 纯桌面 GUI、必须本地交互 |
-| D2 营销价值 | 是否有明确差异化、目标客户和组合价值？ | 已有明显更强同类、仅内部工具 |
-| D3 场景价值 | 是否解决真实客户痛点并优于替代方案？ | 无具体客户场景或付费意愿证据 |
-| D4 云上部署价值 | 云上是否带来可靠性、弹性、连接或运维增益？ | 仅把本地程序搬到 ECS，反而增加成本或延迟 |
-
-评分必须区分事实、推断和未知项；时效性事实应使用权威来源验证，不能用 GitHub Stars 代替业务证据。
-
-## 决策阈值
-
-| 总分 | 结论 | 后续规则 |
-|---|---|---|
-| `< 4` | 不建议 | 默认结束；可建议重新定义范围 |
-| `4–5.9` | 有条件候选 | 仅当用户明确作出战略 override 时，才可继续系统评估 |
-| `>= 6` | 可继续评估 | 进入主 Agent 的技术与系统评估，不能自动启动开发 |
-
-任何分数都不能绕过主 Agent 的“系统评估 → 初版方案 → 用户确认 → 架构合同冻结”门禁。低 D4 只能作为风险和重新定位建议，不能自行加入 HA、RDS、监控或其他资源来提高分数。
-
-## 评估要点
-
-- D1：服务形态、headless 能力、运行时、持续服务能力。
-- D2：目标客户、同类方案、差异化、与华为云服务的真实组合价值。
-- D3：具体客户、当前替代方案、购买动机、可验证需求。
-- D4：弹性、高可用、持久化、云服务联动、合规、成本与延迟的净增益。
-- 许可证、活跃度、维护状态等事实可作为风险证据，但不替代四维评分。
-
-## 输出
-
-```markdown
-# {项目名} 业务评估
-
-## 证据与假设
-- 已验证事实：...
-- 推断：...
-- 待确认：...
-
-## 四维评分
-| 维度 | 得分 | 依据 |
-|---|---:|---|
-| D1 服务端属性 | /10 | ... |
-| D2 营销价值 | /10 | ... |
-| D3 场景价值 | /10 | ... |
-| D4 云上部署价值 | /10 | ... |
-| 总分 | /10 | ... |
-
-## 结论
-- 建议：不建议 / 需战略 override / 可继续系统评估
-- 主要风险：...
-- 建议定位：...
-- 待主 Agent 或用户确认：...
-```
-
-若总分为 4–5.9，必须明确记录用户是否给出战略 override；未给出时不得继续。若总分达到 6，也只移交主 Agent 做下一阶段评估。
+Add no score, threshold, or gate from this alias. New work must use `sac-architecture`.

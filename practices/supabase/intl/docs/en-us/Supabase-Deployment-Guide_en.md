@@ -12,7 +12,7 @@
 
 ### 1.1 Use Cases
 
-This solution deploys Supabase — the open-source Firebase alternative — on a Huawei Cloud ECS instance. The candidate checks out the complete official `docker/` directory at commit `00ecb5305965ff85e1b5757e34a8eb5eb787f6f6`, then uses the official `docker-compose.yml` and `run.sh`. It provides PostgreSQL, authentication, REST/GraphQL APIs, real-time subscriptions, file storage, Edge Functions, and a web Dashboard.
+This solution deploys Supabase `v1.26.07` — the open-source Firebase alternative — on a Huawei Cloud ECS instance. The candidate checks out the complete official `docker/` directory at commit `949a57d2854b7fcadc0d621cb7fffa167506d581`, then uses the official `docker-compose.yml` and `run.sh`. It provides PostgreSQL, authentication, REST/GraphQL APIs, real-time subscriptions, file storage, Edge Functions, and a web Dashboard.
 
 Typical use cases:
 
@@ -163,8 +163,8 @@ Step 2 Click "Next", confirm the basic configuration, and set the ECS password a
 | solution_name | Solution name, 4-24 chars, lowercase letters/digits/hyphens, must start with a lowercase letter | supabase |
 | ecs_flavor | ECS flavor, c7n.2xlarge.2 (8vCPUs 16GiB) or above recommended. Change to match available flavors in target region | c7n.2xlarge.2 |
 | ecs_password | ECS root password, 8-26 chars, at least 3 of: uppercase, lowercase, digits, special characters | / |
-| db_password | PostgreSQL password with no template-side character whitelist; special characters are supported. Use a strong password | / |
-| system_disk_size | System disk size (GB), high-IO type, range: 40-1024, 100GB recommended for Supabase | 100 |
+| db_password | PostgreSQL password, 8-24 characters, using letters, digits, and `~!^*-=_+,`; `@` is not supported | / |
+| system_disk_size | General Purpose SSD system disk size (GB), range: 40-1024, 100GB recommended for Supabase | 100 |
 | bandwidth_size | EIP bandwidth (Mbit/s), traffic billing, range: 1-300 | 300 |
 | charging_mode | Billing mode: postPaid (pay-per-use) or prePaid (subscription) | postPaid |
 | charging_unit | Subscription unit: month or year, only effective for prePaid | month |
@@ -326,7 +326,7 @@ Step 2 In the confirmation dialog, select "Delete Resources", enter `Delete`, an
 
 - [Supabase Documentation](https://supabase.com/docs)
 - [Supabase GitHub](https://github.com/supabase/supabase)
-- [Pinned official Docker deployment directory](https://github.com/supabase/supabase/tree/00ecb5305965ff85e1b5757e34a8eb5eb787f6f6/docker)
+- [Pinned official Docker deployment directory for v1.26.07](https://github.com/supabase/supabase/tree/949a57d2854b7fcadc0d621cb7fffa167506d581/docker)
 - [Supabase Self-Hosting Guide](https://supabase.com/docs/guides/self-hosting/docker)
 - [Huawei Cloud RFS](https://support.huaweicloud.com/intl/en-us/rfs/)
 

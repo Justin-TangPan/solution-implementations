@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.14.0 (2026-08-07) — SAC Core 与 Codex / Claude Code 双适配
+
+### 改进
+
+- 将平台无关能力收敛为 Project、Architecture、Implementation、Quality、Documentation 五个 Core Skill。
+- 将核心能力角色收敛为 Architect、Builder、Reviewer，并分别提供 Codex 与 Claude Code 原生适配。
+- CLI 支持安装 Codex、Claude Code 或双平台资产，延续 merge block、`.sac-new` 和 Dry Run 保护。
+- PR、main 与 Tag 复用同一基础质量门禁；正式范围、能力模型和 Adapter 继续由结构化事实源约束。
+
+### 兼容性与验证
+
+- 旧 Agent、Skill 和 Workflow 入口保留为 Deprecated/Compatibility，不改变已有用户安装入口。
+- Node 31 项、Python 19 项及 38 个 Practice 实例的 536 项静态检查通过；Web lint/build 与 npm pack dry-run 通过。
+- 本版本的静态验证不代表所有 Terraform 已在真实云环境完成部署验证。
+
+## v0.13.0 (2026-08-06) — SAC 工作流与仓库结构收敛
+
+### 改进
+
+- 统一 Codex 与 Claude Code 的 Agent、工作流和 Skill 分发入口。
+- 收敛 Practice 目录、质量门禁、正式方案清单与 Web 索引。
+- 重塑 README，并补充华为云实时价格查询能力。
+
+## v0.12.0 (2026-07-27) — SAC 核心交付与发布一致性修复
+
+### 修复
+
+- 将 Hermes 内联 Terraform 基线纳入 npm 包，移除 bootstrap 中对 ECS 密码的敏感插值。
+- 同步正式 practice 范围、CLI 测试、项目状态与 npm 打包清单。
+- 固化 Terraform、部署指南和方案详情为核心 SAC 交付，并恢复测试、安全和文档发布门禁。
+- 用户确认 AstrBot 中国站标准版云测通过；候选模板已晋升，并生成仅本地的 v0.12.0 release 包。
+- OmniRoute 暂不纳入仓库或对外发布，已从正式范围、npm 包和工作台索引移除。
+
+### 验证
+
+- npm 测试、SAC 静态门禁和 npm 打包清单检查通过；新增候选仍需用户确认云测后才能晋升正式 release。
+
 ## v0.11.0 (2026-07-21) — Skills 精准路由与本地工具链
 
 ### 新功能

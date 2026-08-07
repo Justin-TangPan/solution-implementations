@@ -93,7 +93,7 @@ export default function ReleasesPage() {
           <div className="serif text-xl font-bold text-ink">暂无发布包</div>
           <p className="text-sm text-ink-faded mt-2">
             <code className="bg-cream rounded px-1 py-0.5">release/</code> 目录为空或尚未生成发布包。
-            执行 <code className="bg-cream rounded px-1 py-0.5">package_solution.sh</code> 或全流程交付后刷新。
+            完成本地交付流程并生成归档与 <code className="bg-cream rounded px-1 py-0.5">SHA256SUMS</code> 后刷新。
           </p>
         </div>
       )}

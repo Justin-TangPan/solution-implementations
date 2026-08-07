@@ -16,7 +16,10 @@ export default function ReportsPage() {
     .sort((a, b) => b.value - a.value)
 
   // 评分分布
-  const scoreData = [...practices].sort((a, b) => b.score - a.score).map(p => ({ name: p.name, score: p.score }))
+  const scoreData = practices
+    .filter((p): p is typeof p & { score: number } => p.score !== null)
+    .sort((a, b) => b.score - a.score)
+    .map(p => ({ name: p.name, score: p.score }))
 
   return (
     <div className="px-10 py-14 max-w-none space-y-10">
@@ -24,7 +27,7 @@ export default function ReportsPage() {
         <div className="eyebrow mb-3">Reports</div>
         <h1 className="heading-lg text-ink">报告</h1>
         <p className="text-sm text-ink-faded mt-3 max-w-2xl leading-relaxed">
-          方案目录的分类、区域与评分分布洞察。
+          方案目录的分类、区域与人工维护评分分布；评分不是质量门禁结果。
         </p>
       </header>
 
