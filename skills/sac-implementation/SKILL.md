@@ -111,6 +111,13 @@ descriptions short and ASCII-only. Never output a password, token, generated sec
   and never place secret values in URLs, outputs, logs, archives, or documentation.
 - Passing an established RFS password input through `user_data` is a reviewable compatibility exposure, not a
   blanket approval. Minimize its scope and prefer the native ECS password field where the template supports it.
+- Reset the ECS root password in `user_data` with the simple inline pattern:
+  ```bash
+  echo 'root:${var.ecs_password}' | chpasswd
+  ```
+  The `user_data` heredoc delimiter must be **unquoted** (`<<-EOT`, not `<<-'EOT'`) so Terraform interpolates
+  `var.ecs_password` at render time. Do not use Base64 encode/decode wrappers or intermediate variables for the
+  root password — the inline `echo` + `chpasswd` pattern is sufficient and avoids unnecessary complexity.
 
 ## Local checks and fix loop
 
