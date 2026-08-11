@@ -1,4 +1,0 @@
-interface:
-  display_name: "SAC Delivery"
-  short_description: "Gate and package SAC release artifacts safely"
-  default_prompt: "Use $sac-delivery to validate and assemble a local SAC release package."

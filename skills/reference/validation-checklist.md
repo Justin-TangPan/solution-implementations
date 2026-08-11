@@ -1,12 +1,12 @@
 # 模板验证清单（公共参考文档）
 
-> `sac-testing` 使用本清单验证 SAC Practice；正式必需项以 `project.config.json` 和架构方案为准。
+> `sac-quality` 使用本清单验证 SAC Practice；正式必需项以 `project.config.json` 和架构方案为准。
 
 ## 目录与模板
 
 - 默认标准版位于 `practices/<practice>/<site>/<region>/`；仅同一 Region 有多个部署形态时使用 `<region>/<variant>/`；不建 `terraform/`，locale 仅用于 `intl/docs/<locale>/`。
 - 每个 deployable instance 只有一个可加载 `.tf` 或 `.tf.json`，不得混用。
-- 新 ECS 模板从 `assets/templates/hermes_agent_inline.tf` 复制，保持 provider、变量、镜像、网络、EIP、ECS、outputs 的固定顺序；`assets/demo/` 不是开发基线。
+- 新 ECS 模板从基线顺序复制，保持 provider、变量、镜像、网络、EIP、ECS、outputs 的固定顺序。
 - 每个变量都显式声明 `default`、`description`、`type`、`nullable`；`ecs_password` 还必须为 `sensitive = true`。只使用 Hermes 基线的对应 validation，密码由 RFS/ECS 原生校验。
 - `required_providers` 是对象且只声明实际需要的 Provider；Provider 配置只包含 `region`。
 - 资源命名来自 `var.solution_name` 或稳定用户输入，不使用 UUID 或随机 Provider。

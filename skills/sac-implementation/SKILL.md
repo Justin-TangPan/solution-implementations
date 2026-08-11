@@ -37,8 +37,7 @@ security choice.
 
 ## Terraform baseline and layout
 
-For a new ECS-based Practice, copy `assets/templates/hermes_agent_inline.tf`; it is the canonical baseline.
-`assets/demo/` is historical reference only. Do not start from a blank file or redesign the baseline order:
+For a new ECS-based Practice, start from the canonical baseline order. Do not start from a blank file or redesign it:
 
 ```text
 terraform/provider → variables → image data → VPC → subnet → security-group rules → EIP → ECS → outputs
@@ -74,11 +73,28 @@ redundant `terraform/` wrapper. Each deployable instance directory contains exac
 Every customer-facing variable includes `default`, `description`, `type`, and `nullable`, in that order. Add a
 validation only for its own variable and only when the implementation contract requires it.
 
+### Validation rules
+
+1. **Self-reference only.** Terraform `validation` blocks can only reference the variable being validated
+   (`var.xxx`). Cross-variable references (e.g. checking `var.charging_unit` inside `var.charging_period`) are
+   rejected at `terraform validate`. When a variable's valid range depends on another variable, state the
+   constraint in `error_message` only; do not attempt it in `condition`.
+
+2. **No password validation.** Password variables (`ecs_password`, `db_password`, and any `*_password` input)
+   must **not** include a `validation` block. Password complexity rules vary by cloud API version and special-
+   character set; regex validation in Terraform frequently rejects legitimate passwords. Let the cloud API
+   enforce its own policy and return clear errors at apply time.
+
+3. **Flavor format check only.** ECS flavor (`ecs_flavor`) validation uses a basic format check
+   (`can(regex("[a-zA-Z]", var.ecs_flavor)) && can(regex("[0-9]", var.ecs_flavor))`) — at least one letter
+   and one digit. Do not enumerate specific flavor IDs; available flavors differ by Region and change
+   frequently. The format check catches empty or degenerate input without becoming stale.
+
 | Variable | Default | Type / nullable | Required rule |
 |---|---|---|---|
 | `solution_name` | confirmed lowercase project name | `string` / `false` | description states naming rule and default |
-| `ecs_flavor` | confirmed flavor | `string` / `false` | `length(regexall("^([a-z][a-z0-9]{0,3}\\.)(x|[1-9][0-9]{0,1}x)large\\.[1-9][0-9]{0,1}$|^x1\\.([1-9]|1[0-6])u\\.([1-9][0-9]{0,1}|1[0-2][0-8])g$", var.ecs_flavor)) > 0` |
-| `ecs_password` | `""` | `string` / `true`; `sensitive = true` | cloud password policy is documented; never output it |
+| `ecs_flavor` | confirmed flavor | `string` / `false` | at least one letter and one digit (see rule 3) |
+| `ecs_password` | `""` | `string` / `true`; `sensitive = true` | no validation block (see rule 2); never output it |
 | `system_disk_size` | confirmed GiB, normally `100` | `number` / `false` | `length(regexall("^([4-9][0-9]|[1-9][0-9]{2}|10[01][0-9]|102[0-4]|1024)$", var.system_disk_size)) > 0` |
 | `bandwidth_size` | confirmed Mbps, normally `300` | `number` / `false` | `length(regexall("^([1-9][0-9]{0,1}|[1-2][0-9]{2}|300)$", var.bandwidth_size)) > 0` |
 | `charging_mode` | `"postPaid"` | `string` / `false` | `contains(["postPaid", "prePaid"], var.charging_mode)` |
@@ -89,8 +105,11 @@ Preserve existing variable defaults unless the architecture contract explicitly 
 Product-specific variables follow the same field rules and need an exact contract value.
 
 Provide one short primary `access_instructions` or `access_info` output. Add separate meaningful `snake_case`
-outputs only for information users must retrieve independently, such as an API URL, SSH command, credential-
-retrieval command, or log path. Do not join unrelated values with decorative separators. Interpolate the
+outputs for each value users must retrieve independently, such as `dashboard_url`, `rest_api_url`,
+`auth_api_url`, `ssh_command`, `dashboard_password_hint`, and `deployment_log`. **Never join unrelated
+values with `|`, commas, or any decorative separator** — each distinct piece of information is its own
+`output` block. This ensures downstream automation can reference individual outputs
+(`terraform output -raw dashboard_url`) and JSON output is naturally structured. Interpolate the
 provisioned EIP for a public entry; describe the agreed private-access path for a private entry. Keep output
 descriptions short and ASCII-only. Never output a password, token, generated secret, or speculative detail.
 
@@ -137,8 +156,7 @@ an environment result, not evidence that a template passed or failed in the clou
 
 When local packaging is requested and quality has passed:
 
-1. copy only authoritative `practices/` inputs and required documents to the canonical `release/<project>/`
-   layout;
+1. copy only authoritative `practices/` inputs and required documents to the local delivery directory;
 2. byte-compare every copied file with its source;
 3. create the archive deterministically and list its contents;
 4. generate SHA-256 checksums for delivered files and the archive;

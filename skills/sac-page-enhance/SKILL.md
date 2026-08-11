@@ -19,7 +19,7 @@ Produce only the requested artifacts:
 - structured JSON for extracted page sections;
 - enhanced JSON plus a before/after report for copy refinement;
 - comparison report for multiple page variants;
-- two-column rich-text Excel through `scripts/gen_xlsx.py`.
+- two-column rich-text Excel.
 
 Use the schema and formatting accepted by the existing script; inspect its input contract when producing JSON
 instead of duplicating that contract here.
@@ -48,10 +48,6 @@ reported, not silently corrected.
 ## Excel
 
 Run:
-
-```bash
-python scripts/gen_xlsx.py <input.json> <output.xlsx>
-```
 
 Use two columns (`项目`, `内容`), rich-text headings, numbered repeated items, wrapped text, and the formatting
 implemented by the script. Return source coverage, generated files, unsupported claims removed or marked, and

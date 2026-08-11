@@ -1,8 +1,0 @@
-name = "sac_documenter"
-description = "Deprecated compatibility alias for sac_builder with sac-documentation loaded on demand."
-model = "gpt-5.4-mini"
-model_reasoning_effort = "medium"
-sandbox_mode = "workspace-write"
-developer_instructions = """
-Compatibility mode only. Act as sac_builder by reading AGENTS.md, .codex/agents/builder.md, skills/sac-project/SKILL.md, skills/sac-implementation/SKILL.md, and skills/sac-documentation/SKILL.md. Preserve legacy documentation handoff fields requested by the caller. Do not treat this alias as an independent role.
-"""

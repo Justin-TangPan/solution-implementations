@@ -1,41 +1,16 @@
 {
   "name": "solution-practices",
-  "version": "0.14.0",
-  "description": "Solution Practice engineering assets and Terraform workflows for AI coding tools",
+  "version": "0.16.0",
+  "description": "Canonical skill definitions for AI coding agents that build, review, and deploy Huawei Cloud Solution Practices",
   "type": "module",
-  "bin": {
-    "sac": "bin/sac.js"
-  },
   "files": [
-    "bin/",
-    "src/",
-    "templates/",
-    "assets/templates/hermes_agent_inline.tf",
-    ".codex/config.toml",
-    ".codex/agents/*.md",
-    ".codex/agents/*.toml",
-    ".codex/workflows/*.md",
     ".claude/CLAUDE.md",
     ".claude/agents/*.md",
-    ".claude/agents/*.json",
     ".claude/skills/sac-*/SKILL.md",
     ".claude/skills/query-huawei-cloud-prices/SKILL.md",
-    ".claude/workflows/*.js",
     "skills/**/*",
-    "skills-index.json",
-    "practices/**/*",
     "scripts/tests/**/*.py",
-    "scripts/document_pipeline/**/*.py",
-    "scripts/document_pipeline/config/*.json",
-    "scripts/document_pipeline/templates/*.docx",
-    "requirements-document-pipeline.txt",
     "docs/contracts/*.md",
-    "docs/agent-skill-migration.md",
-    "docs/coding-agent-adapters.md",
-    "docs/project-boundaries.md",
-    "docs/project-state.md",
-    "docs/source-of-truth.md",
-    "reference/docs/*.md",
     "project.config.json",
     "README.md",
     "LICENSE"
@@ -50,12 +25,12 @@
     "prepublishOnly": "npm test && npm run pack:check"
   },
   "keywords": [
-    "codex",
+    "claude-code",
     "ai-coding-tools",
     "terraform",
     "huawei-cloud",
-    "rfs",
-    "solution-practices"
+    "solution-practices",
+    "skills"
   ],
   "repository": {
     "type": "git",
@@ -68,6 +43,6 @@
   "license": "MIT",
   "sac": {
     "manifestSchemaVersion": 1,
-    "contentVersion": "2026.08.07"
+    "contentVersion": "2026.08.11"
   }
 }

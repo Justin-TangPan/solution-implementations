@@ -16,22 +16,21 @@ discovery, context loading, delegation, and invocation belong outside this Skill
 
 Use repository truth in this order:
 
-1. `project.config.json` for formal practice scope and project policy;
-2. `practices/` for implemented Terraform, optional `.extension`, and practice documents;
+1. `project.config.json` for skills registry and agent capabilities;
+2. `skills/` for canonical SKILL.md business rules;
 3. executable tests and quality scripts for current static evidence;
-4. `skills/` and `docs/contracts/` for engineering rules;
-5. README, generated indexes, and Web pages as presentation only.
+4. `skills/reference/` and `docs/contracts/` for engineering rules;
+5. README and generated indexes as presentation only.
 
-In an installed host without a root `project.config.json`, use `.sac/project.config.json`. Read
-`docs/source-of-truth.md` when changing shared metadata or formal scope. Never treat a manually maintained
-score, label, status, or narrative as an automatically verified result.
+In an installed host without a root `project.config.json`, use `.sac/project.config.json`.
+Never treat a manually maintained score, label, status, or narrative as an automatically verified result.
 
 ## Formal and experimental scope
 
 - A formal Practice is a project listed in `project.config.json` and backed by `practices/<project>/`.
 - Keep an unlisted candidate under `.var/candidates/practices/` until formal admission is explicitly approved.
-- `reference/` is user-owned and read-only unless the user explicitly changes that scope.
-- Runtime adapters, Web pages, historical reports, and local archives do not define formal practice scope.
+- `skills/reference/` is read-only unless the user explicitly changes that scope.
+- Runtime adapters, historical reports, and local archives do not define formal practice scope.
 
 Project IDs are lowercase hyphenated names. The canonical implementation dimensions are `site → region`,
 with `variant` only when one Region has multiple deployment forms:

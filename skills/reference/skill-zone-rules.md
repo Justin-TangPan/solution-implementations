@@ -2,8 +2,8 @@
 
 ## 运行时真相
 
-`project.config.json` 定义能力角色和 Skill 分类。`AGENTS.md`、`.codex/agents/` 与
-`.claude/` 分别实现 Runtime 适配；`skills-index.json` 只用于发现、展示和内部审计。
+`project.config.json` 定义能力角色和 Skill 分类。`AGENTS.md` 与
+`.claude/` 分别实现 Runtime 适配。
 
 ## 最小加载
 
@@ -15,5 +15,5 @@
 | Builder | `sac-project`、`sac-implementation` | 文档任务加载 `sac-documentation`；实时成本再加载价格 Skill |
 | Reviewer | `sac-project`、`sac-quality` | 无 |
 
-所有旧名仅为兼容入口；`sac-document-pipeline` 已弃用，不与 `sac-documentation` 重复加载。
+所有旧名仅为兼容入口，不再加载。
 任务结束后清空本次 Skill 上下文。不得为了“可能有用”加载条件 Skill。

@@ -1,24 +1,6 @@
 {
-  "formal": {
-    "practices": [
-      "cognee",
-      "astrbot",
-      "dify",
-      "litellm",
-      "newapi",
-      "supabase",
-      "openjiuwen",
-      "mem0"
-    ],
-    "exclude": [
-      ".claude",
-      "scripts/archive",
-      "scripts/experimental"
-    ]
-  },
   "agent_capabilities": {
     "supported_runtimes": [
-      "codex",
       "claude-code"
     ],
     "core_roles": {
@@ -61,34 +43,7 @@
         "sac-deep-search",
         "sac-page-enhance",
         "query-huawei-cloud-prices"
-      ],
-      "compatibility": {
-        "sac-project-rules": [
-          "sac-project"
-        ],
-        "sac-technical-evaluator": [
-          "sac-architecture"
-        ],
-        "sac-business-evaluator": [
-          "sac-architecture"
-        ],
-        "sac-rfs-practices": [
-          "sac-implementation"
-        ],
-        "sac-testing": [
-          "sac-quality"
-        ],
-        "sac-security": [
-          "sac-quality"
-        ],
-        "sac-delivery": [
-          "sac-implementation",
-          "sac-quality"
-        ]
-      },
-      "deprecated": {
-        "sac-document-pipeline": "sac-documentation"
-      }
+      ]
     },
     "task_flows": {
       "small-change": [
@@ -117,12 +72,6 @@
       ]
     },
     "adapters": {
-      "codex": {
-        "instructions": "AGENTS.md",
-        "skill_discovery": ".agents/skills",
-        "agents": ".codex/agents",
-        "workflows": ".codex/workflows"
-      },
       "claude-code": {
         "instructions": ".claude/CLAUDE.md",
         "skill_discovery": ".claude/skills",
@@ -130,199 +79,5 @@
         "workflows": "skills-and-subagents"
       }
     }
-  },
-  "quality_gate": {
-    "require_terraform_dir": false,
-    "require_scripts_dir": false,
-    "require_extension": false,
-    "allow_inline_install_script": true,
-    "canonical_layout": "site-region-optional-variant",
-    "reject_unlisted_practice_dirs": true,
-    "max_terraform_files_per_instance": 1,
-    "terraform_locale_layer": false,
-    "architecture_exceptions": {
-      "dify/cn/cn-north-4/ha": {
-        "allowed_providers": [
-          "huaweicloud",
-          "kubernetes"
-        ],
-        "accepted_risks": [
-          "legacy_remote_installer"
-        ],
-        "reason": "已验证的 Dify HA 模板使用 Kubernetes Provider 管理 CCE 工作负载并保留现网远端安装链路；Provider 例外不豁免凭证与网络审计。"
-      },
-      "dify/cn/cn-north-4/standard": {
-        "accepted_risks": [
-          "legacy_remote_installer"
-        ],
-        "reason": "保留已上线 Dify standard 远端安装链路，不授权新模板复用。"
-      },
-      "dify/cn/cn-north-4/css": {
-        "accepted_risks": [
-          "legacy_remote_installer"
-        ],
-        "reason": "保留已上线 Dify CSS 远端安装链路，不授权新模板复用。"
-      },
-      "litellm/*/ha": {
-        "allowed_providers": [
-          "huaweicloud",
-          "kubernetes"
-        ],
-        "reason": "已上线并验证的 LiteLLM 高可用架构需要 Kubernetes provider"
-      },
-      "litellm/*/standard": {
-        "accepted_risks": [
-          "public_http_control_plane"
-        ],
-        "reason": "保留现有已上线访问架构，风险由质量门禁持续提示"
-      },
-      "newapi/intl/ap-southeast-1/ha": {
-        "allowed_providers": [
-          "huaweicloud",
-          "kubernetes"
-        ],
-        "allowed_huaweicloud_provider_keys": [
-          "endpoints",
-          "region"
-        ],
-        "reason": "已验证的 NewAPI HA 模板需要 Kubernetes Provider 管理 CCE 工作负载，并保留国际站 BSS endpoint 覆盖。"
-      },
-      "newapi/intl/ap-southeast-1/standard": {
-        "accepted_risks": [
-          "legacy_remote_installer"
-        ],
-        "reason": "保留已上线 NewAPI standard 远端安装链路，不授权新模板复用。"
-      },
-      "supabase/*/standard": {
-        "accepted_risks": [
-          "public_http_control_plane"
-        ],
-        "reason": "保留现有已上线访问架构，风险由质量门禁持续提示"
-      }
-    },
-    "practice_policies": {
-      "astrbot/cn/cn-north-4/standard": {
-        "single_active_template": true,
-        "inline_user_data": true,
-        "accepted_risks": [
-          "public_http_control_plane"
-        ],
-        "forbidden_variables": [
-          "llm_api_key",
-          "platform_token",
-          "web_access_cidr"
-        ],
-        "official_default_interface": {
-          "port": 6185,
-          "remote_ip_prefix": "0.0.0.0/0",
-          "do_not_override_runtime_port": true
-        }
-      },
-      "cognee/cn/cn-north-4/standard": {
-        "single_active_template": true,
-        "inline_user_data": true,
-        "accepted_risks": [
-          "public_http_control_plane"
-        ],
-        "forbidden_variables": [
-          "db_password",
-          "jwt_secret",
-          "llm_api_key",
-          "web_access_cidr"
-        ],
-        "official_default_interface": {
-          "port": 8000,
-          "remote_ip_prefix": "0.0.0.0/0",
-          "do_not_override_runtime_port": true
-        }
-      },
-      "openjiuwen/cn/cn-north-4/jiuwenswarm": {
-        "single_active_template": true,
-        "inline_user_data": true,
-        "forbidden_variables": [
-          "frontend_port",
-          "web_access_cidr",
-          "requirements_lock_url"
-        ],
-        "eip": {
-          "default_bandwidth": 300,
-          "charging_mode": "postPaid",
-          "bandwidth_charge_mode": "traffic"
-        },
-        "official_default_interface": {
-          "port": 5173,
-          "remote_ip_prefix": "0.0.0.0/0",
-          "do_not_override_runtime_port": true
-        }
-      },
-      "mem0/cn/cn-north-4/standard": {
-        "single_active_template": true,
-        "inline_user_data": true,
-        "accepted_risks": [
-          "public_http_control_plane"
-        ],
-        "forbidden_variables": [
-          "web_access_cidr"
-        ],
-        "official_default_interface": {
-          "port": 8888,
-          "remote_ip_prefix": "0.0.0.0/0",
-          "do_not_override_runtime_port": true
-        }
-      }
-    },
-    "documentation": {
-      "strict": false,
-      "require_docx": false,
-      "require_bilingual_intl": true,
-      "maximum_markdown_files_per_solution": 6,
-      "block_on_pipeline_errors": true
-    }
-  },
-  "document_pipeline": {
-    "enabled": true,
-    "offline": true,
-    "output_root": "output/document-pipeline",
-    "template_dir": "scripts/document_pipeline/templates",
-    "config_dir": "scripts/document_pipeline/config",
-    "translator_provider": "offline",
-    "publish_requires_manual_review": true
-  },
-  "distribution": {
-    "managed_file_policies": {
-      "AGENTS.md": "merge-block",
-      ".claude/CLAUDE.md": "merge-block",
-      ".codex/agents/*": "managed",
-      ".codex/workflows/*": "managed",
-      ".agents/skills/sac-*": "managed",
-      ".agents/skills/query-huawei-cloud-prices": "managed",
-      ".claude/agents/*": "managed",
-      ".claude/skills/sac-*": "managed",
-      ".claude/skills/query-huawei-cloud-prices": "managed",
-      ".claude/workflows/*": "managed",
-      "skills/sac-*": "managed",
-      "skills/query-huawei-cloud-prices": "managed",
-      "skills/reference/*": "managed",
-      "practices/*": "managed-unless-modified"
-    }
-  },
-  "asset_status": {
-    "practices": "formal",
-    "skills": "formal",
-    "scripts/tests": "formal",
-    "package.json": "formal",
-    "bin/sac.js": "formal",
-    "src": "formal",
-    "templates": "formal",
-    "AGENTS.md": "codex-adapter",
-    ".agents/skills": "codex-adapter",
-    ".codex/agents": "codex-adapter",
-    ".codex/workflows": "codex-adapter",
-    ".claude/CLAUDE.md": "claude-adapter",
-    ".claude/skills": "claude-adapter",
-    ".claude/agents": "claude-adapter",
-    ".claude/workflows": "compatibility",
-    "skills-embeddings.json": "derived-unused",
-    "web": "auxiliary"
   }
 }

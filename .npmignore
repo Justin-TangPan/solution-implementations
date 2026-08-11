@@ -1,21 +1,5 @@
-# Only formal practices are published.
-practices/*
-!practices/litellm/
-!practices/litellm/**
-!practices/supabase/
-!practices/supabase/**
-!practices/openjiuwen/
-!practices/openjiuwen/**
-!practices/cognee/
-!practices/cognee/**
-!practices/astrbot/
-!practices/astrbot/**
-!practices/dify/
-!practices/dify/**
-!practices/newapi/
-!practices/newapi/**
-
-# Runtime and local artifacts.
+# Test and local artifacts
+test/
 **/__pycache__/
 **/*.py[cod]
 **/skill-report.json
@@ -27,4 +11,3 @@ practices/*
 *.bak
 *.sac-new
 node_modules/
-test/

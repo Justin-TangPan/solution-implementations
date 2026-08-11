@@ -1,4 +1,0 @@
-interface:
-  display_name: "SAC Documentation"
-  short_description: "Create consistent SAC deployment and solution docs"
-  default_prompt: "Use $sac-documentation to create or verify the required SAC documentation."

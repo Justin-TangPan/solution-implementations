@@ -92,28 +92,12 @@ host, use its isolated `.sac/tooling` copy instead:
 
 ```bash
 python -m venv .venv-sac
-.venv-sac/bin/python -m pip install -r .sac/tooling/requirements-document-pipeline.txt
-PYTHONPATH=.sac/tooling .venv-sac/bin/python -m scripts.document_pipeline generate --project <project> --site <cn|intl|all> [--docx]
+.venv-sac/bin/python -m pip install -r .sac/tooling/requirements-test.txt
 ```
 
-Do not claim DOCX or formal-gate execution when neither tooling location is present; report that capability as
-blocked. The remaining source-repository commands are:
-
-```bash
-.venv-sac/bin/python -m scripts.document_pipeline analyze --project <project>
-.venv-sac/bin/python -m scripts.document_pipeline generate --project <project> --site <cn|intl|all> [--docx]
-.venv-sac/bin/python -m scripts.document_pipeline translate --project <project> --locale en-us
-.venv-sac/bin/python -m scripts.document_pipeline render-word --project <project>
-.venv-sac/bin/python -m scripts.document_pipeline validate --project <project>
-.venv-sac/bin/python -m scripts.document_pipeline convert --input <legacy.md|docx|pdf>
-```
-
-- `analyze`: build the standard model without formal publication.
-- `generate`: produce the requested document set and reports.
-- `translate`: create a locale-specific model and Markdown.
-- `render-word`: use only when DOCX is required; template paths come from configuration or arguments.
-- `validate`: read-only document check; it does not replace the formal project test entry.
-- `convert`: normalize legacy input before editing or translation.
+Do not claim DOCX or formal-gate execution when tooling is not present; report that capability as
+blocked. Document generation commands are provided by installed tooling; available subcommands are
+`analyze`, `generate`, `translate`, `render-word`, `validate`, `convert`.
 
 Default to offline processing. External models or endpoints require explicit configuration and applicable data
 authorization. If unavailable, preserve deterministic outputs and report the missing semantic work.

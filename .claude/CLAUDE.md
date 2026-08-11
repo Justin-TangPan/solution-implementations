@@ -1,16 +1,15 @@
 <!-- SAC:START -->
 # SAC project instructions
 
-This repository is an engineering package for producing and validating Solution Practices. It does not call
-language models, provide an Agent Runtime, or deploy real cloud resources automatically. Terraform templates
-and their verified documentation are the primary deliverables.
+This repository is a **skills-core** project. The primary deliverable is `skills/` — canonical SKILL.md files
+that encode Solution Practice engineering rules, validation checklists, and architecture contracts for AI coding
+agents. The project does not call language models, provide an Agent Runtime, or deploy real cloud resources.
 
 ## Sources of truth
 
-- `project.config.json`: formal Practice scope, project configuration, capability roles, and supported adapters.
+- `project.config.json`: skills registry, agent capabilities, and adapter configuration.
 - `skills/<name>/SKILL.md`: canonical SAC business rules. Files under `.claude/skills/` are discovery wrappers only.
-- `docs/project-state.md`: maintained status narrative; do not maintain formal scope there by hand.
-- `web/`: read-only presentation; never use it as a release or quality authority.
+- `skills/reference/`: shared reference documents consumed by skills.
 
 ## Task routing
 
@@ -44,8 +43,5 @@ Skills are not preloaded.
 
 - Node tests: `npm test`
 - Python quality gate: `.venv-sac/bin/python -m scripts.tests.runner`
-- Web: `npm --prefix web run lint` and `npm --prefix web run build`
 - Package contents: `npm pack --dry-run`
-
-Archived scripts under `scripts/archive/` are not formal workflow inputs.
 <!-- SAC:END -->

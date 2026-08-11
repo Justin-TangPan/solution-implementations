@@ -1,4 +1,0 @@
-interface:
-  display_name: "SAC Security"
-  short_description: "Audit SAC secrets, network, containers, and data"
-  default_prompt: "Use $sac-security to audit this Solution Practice and prioritize security findings."

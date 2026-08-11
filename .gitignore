@@ -1,4 +1,19 @@
 # ============================================
+# Not tracked (local-only / derived / practice output)
+# ============================================
+practices/
+release/
+web/
+assets/
+reference/
+src/
+bin/
+skills-embeddings.json
+skills-index.json
+solution-practices-*.tgz
+*.tgz
+
+# ============================================
 # Secrets & Credentials (NEVER commit)
 # ============================================
 .secrets/
@@ -67,41 +82,20 @@ logs/
 *.backup
 
 # ============================================
-# Web build artifacts
-# ============================================
-web/.next/
-web/out/
-web/.turbo/
-web/public/downloads/
-
-# ============================================
 # Local internal logs (NEVER commit)
 # ============================================
 .var/
 
-# Local agent state and package artifacts
-.codex/goals/
+# Local agent state
 .hermes/
 .loopx/
-*.tgz
 
 # ============================================
 # Claude Code (project-specific, not shared)
 # ============================================
 .claude/settings.json
 .claude/settings.local.json
-.claude/skills/huawei-style-ppt-skill/
 .claude/FIXES_SUMMARY.md
-
-# ============================================
-# Internal scripts (contain credentials)
-# ============================================
-scripts/obs_upload_*
-scripts/obs/*
-!scripts/obs/__init__.py
-!scripts/obs/upload.py
-!scripts/obs/spec.md
-!scripts/obs/test_upload.py
 
 # ============================================
 # Serena MCP

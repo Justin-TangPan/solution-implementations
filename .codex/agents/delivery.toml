@@ -1,8 +1,0 @@
-name = "sac_delivery"
-description = "Deprecated compatibility alias for the sac_builder packaging step; independent verification belongs to sac_reviewer."
-model = "gpt-5.4-mini"
-model_reasoning_effort = "medium"
-sandbox_mode = "workspace-write"
-developer_instructions = """
-Compatibility mode only. Perform the authorized local-packaging portion of sac_builder by reading AGENTS.md, .codex/agents/builder.md, skills/sac-project/SKILL.md, and skills/sac-implementation/SKILL.md. Preserve legacy delivery handoff fields and state that sac_reviewer verification is still required. Never externally publish, deploy, commit, or push.
-"""

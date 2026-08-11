@@ -1,4 +1,0 @@
-interface:
-  display_name: "SAC Testing"
-  short_description: "Validate SAC templates and delivery quality gates"
-  default_prompt: "Use $sac-testing to validate this Solution Practice and report evidence-backed issues."

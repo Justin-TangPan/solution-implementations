@@ -8,7 +8,7 @@
 - 中文正文：`{Name}-部署指南_zh.md`
 - 英文正文：`{Name}-Deployment-Guide_en.md`
 
-参考模板：`reference/docs/部署指南模板-华为云标准.md`（基于 LiteLLM 部署指南提取）
+参考模板：基于 LiteLLM 部署指南提取的标准结构
 
 ```
 1. 方案概述 / Solution Overview

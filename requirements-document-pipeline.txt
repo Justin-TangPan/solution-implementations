@@ -1,7 +1,0 @@
-# Core document pipeline uses the Python standard library.
-# These packages enable deterministic Word rendering and offline document import.
-python-docx>=1.1,<2
-docxtpl[subdoc]>=0.20,<0.21
-PyYAML>=6,<7
-# PDF is a fallback adapter; install this extra only where PDF migration is needed:
-# PyMuPDF>=1.24,<2

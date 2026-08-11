@@ -51,7 +51,7 @@ practices/<practice>/intl/docs/en-us/<Name>-Solution-Details_en.md
 The document pipeline may create a DOCX beside each Markdown document using the same basename. DOCX is an
 additive, configurable IDP rendering output; historical practices that only contain Markdown remain valid
 until migrated. Intermediate standard documents, conversion artifacts, and reports belong under
-`output/document-pipeline/<practice>/`, not `reference/` or `release/`.
+`output/document-pipeline/<practice>/`, not `skills/reference/`.
 
 Terraform lifecycle:
 

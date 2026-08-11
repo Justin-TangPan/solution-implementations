@@ -19,28 +19,17 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            web/package-lock.json
+          cache-dependency-path: package-lock.json
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dependencies
         run: |
           npm ci
-          npm ci --prefix web
-          python -m pip install --requirement requirements-test.txt --requirement requirements-document-pipeline.txt
+          python -m pip install --requirement requirements-test.txt
       - name: Run Node.js tests
         run: npm test
-      - name: Run Python unit checks
-        run: python -m unittest discover -s scripts/tests -p "test_*.py"
-      - name: Run offline Terraform and Practice static gate
+      - name: Run Python quality gate
         run: python -m scripts.tests.runner
-      - name: Lint Web
-        run: npm run lint --prefix web
-      - name: Build Web and verify generated index
-        run: |
-          npm run build --prefix web
-          git diff --exit-code -- web/src/lib/practices-index.json
       - name: Inspect npm package
         run: npm run pack:check

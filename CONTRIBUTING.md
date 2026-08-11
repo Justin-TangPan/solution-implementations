@@ -4,64 +4,60 @@
 
 ## 项目概述
 
-SAC (Solution Practices) 是一个华为云解决方案实践仓库。核心工作流：
+SAC (Solution Practices) 是一个华为云解决方案实践仓库，以 Skills 为核心交付物。核心工作流：
 1. AI 架构师评估方案可行性
 2. AI 开发生成 Terraform 模板 + 安装脚本
-3. AI 测试验证模板语法
-4. AI 安全审查风险
-5. AI 文档生成部署指南
-6. AI 交付打包归档
+3. AI 质量审查验证模板语法与安全风险
+4. AI 文档生成部署指南
 
-## 目录结构规范
-
-每个实践方案遵循以下目录结构：
+## 目录结构
 
 ```
-practices/{solution-name}/
-├── {region}/                          # 区域代码 (cn, intl)
-│   ├── {deploy-type}/                # 部署类型 (standard, ha)
-│   │   ├── terraform/                # Terraform 模板
-│   │   │   ├── versions.tf           # Provider 版本声明
-│   │   │   ├── providers.tf          # Provider 配置（无硬编码AK/SK）
-│   │   │   ├── variables.tf          # 变量定义（含description）
-│   │   │   ├── main.tf               # 主资源定义
-│   │   │   └── outputs.tf            # 输出定义（可选）
-│   │   ├── scripts/                  # 安装脚本
-│   │   │   └── install_{name}.sh     # 安装部署脚本
-│   │   └── .extension                # RFS 界面配置文件
-│   └── docs/                         # 文档
-│       ├── {Solution-部署指南}.md     # 部署指南
-│       └── Solution-Details.md       # 方案详情
-└── intl/                             # 国际站（同上结构）
+skills/                                    # 核心交付物
+├── sac-project/SKILL.md                   # 项目范围与配置规则
+├── sac-architecture/SKILL.md              # 架构设计规则
+├── sac-implementation/SKILL.md            # 实现规则
+├── sac-quality/SKILL.md                   # 质量审查规则
+├── sac-documentation/SKILL.md             # 文档生成规则
+├── sac-deep-search/SKILL.md               # 可选：深度搜索
+├── sac-page-enhance/SKILL.md              # 可选：页面增强
+├── query-huawei-cloud-prices/SKILL.md     # 可选：价格查询
+└── reference/                             # 共享参考文档
+scripts/tests/                             # 质量门禁测试
+project.config.json                        # Skills 注册表与能力定义
 ```
+
+Practice 产物（Terraform 模板、部署指南等）存放在本地 `practices/` 目录，不纳入 git 跟踪。
 
 ## 开发流程
 
 ### 1. 新方案提交流程
 
 ```bash
-# 从 litellm 模板复制（最成熟的方案）
-cp -r practices/litellm/cn/cn-north-4 practices/my-app/cn/cn-north-4
+# 在本地 practices/ 下创建方案目录
+mkdir -p practices/my-app/cn/cn-north-4
 
-# 修改模板内容
-# 编辑 terraform/deploying-my-app.tf
-# 编辑 scripts/install_my_app.sh
+# 编辑 Terraform 模板
+# 编辑安装脚本
 
 # 运行测试验证
-python -m scripts.tests.runner --practice my-app
+python -m scripts.tests.runner
 
-# 提交
-git add practices/my-app/
-git commit -m "feat: add my-app practice (cn-north-4)"
+# 提交 Skills 变更（如有）
+git add skills/
+git commit -m "feat: add my-app skill rules"
 ```
 
 ### 2. 代码规范
 
 **Terraform 规范：**
 - 所有密码/密钥变量必须设置 `sensitive = true`
+- 密码变量不加 `validation` 块，由云 API 策略校验
+- `validation` 块只能引用自身变量
 - 安全组规则必须限制源 IP，不允许 `0.0.0.0/0`
 - 变量必须包含 `description` 字段
 - Region 代码统一使用标准命名（`cn-north-4`、`ap-southeast-1`）
+- 输出值使用独立 `output` 块，不用 `|` 或逗号拼接
 
 **Shell 脚本规范：**
 - 必须包含 `set -euo pipefail`
@@ -88,11 +84,11 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 提交前运行：
 ```bash
-# 全量测试
-python -m scripts.tests.runner --json
+# Skills 结构测试
+npm test
 
-# 只测试你的方案
-python -m scripts.tests.runner --practice my-app
+# Python 质量门禁
+python -m scripts.tests.runner
 ```
 
 ## 安全注意事项
@@ -107,4 +103,4 @@ python -m scripts.tests.runner --practice my-app
 提交 Issue 时请包含：
 - 方案名称和区域
 - 具体错误信息
-- `python -m scripts.tests.runner --practice <name>` 的输出
+- `npm test` 和 `python -m scripts.tests.runner` 的输出

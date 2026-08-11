@@ -19,6 +19,10 @@ layout or release contract only when that scope is under review.
 Cover the parts affected by the task:
 
 1. Terraform syntax, formatting, provider shape, variables, validations, outputs, and dependency references;
+   specifically verify:
+   - no `validation` block references a variable other than its own (Terraform rejects cross-variable conditions);
+   - no `*_password` variable contains a `validation` block (password policy is enforced by the cloud API);
+   - no `output` joins unrelated values with `|`, commas, or other decorative separators.
 2. directory and artifact layout, exactly one deployable file per instance, and formal-scope consistency;
 3. architecture-contract parity for resources, topology, network, storage, data, bootstrap, availability,
    operations, billing, and accepted deviations;

@@ -1,5 +1,42 @@
 # Changelog
 
+## v0.16.0 (2026-08-11) — Final cleanup and workflow removal
+
+### Breaking changes
+
+- Removed deprecated `.claude/workflows/*.js` (sac-architect-develop, sac-audit, sac-delivery-only,
+  sac-document-only, sac-full-pipeline) — all referenced removed agent types and paths.
+- Removed `.claude/workflows/*.js` from npm `files` in package.json.
+- Removed untracked stale files from disk: `reference-architecture.html`, `skills-embeddings.json`.
+
+### Improvements
+
+- Fixed dangling references in CONTRIBUTING.md, OWNERSHIP.md, skills/sac-documentation/SKILL.md,
+  skills/sac-implementation/SKILL.md, docs/contracts/practice-layout.md — all now skills-core clean.
+- 61 tracked files, 0 dangling references, npm test 3/3 pass.
+
+## v0.15.0 (2026-08-11) — Skills-core repositioning
+
+### Breaking changes
+
+- Repositioned project as **skills-core**. The primary deliverable is `skills/` — canonical SKILL.md files.
+- Removed from git tracking: `practices/`, `release/`, `web/`, `assets/`, `reference/`, `src/`, `bin/`, `.codex/`,
+  `scripts/archive/`, `scripts/document_pipeline/`, `scripts/obs/`, `docs/ppt/`, `docs/headroom-*/`,
+  `skills-index.json`, and all compatibility/deprecated skills and agents.
+- Removed `codex` from `supported_runtimes` in `project.config.json`.
+- Removed `skills.compatibility` and `skills.deprecated` from `project.config.json`.
+- Removed CLI entry point (`bin/sac.js`, `src/`).
+
+### Improvements
+
+- Added Terraform validation conventions to `sac-implementation/SKILL.md`:
+  validation self-reference only, no password validation, flavor format check only.
+- Added validation review checks to `sac-quality/SKILL.md`.
+- Strengthened output convention: no decorative separators, each value is its own `output` block.
+- Rewrote `README.md`, `AGENTS.md`, `.claude/CLAUDE.md` for skills-core positioning.
+- Slimmed `package.json` (v0.15.0), `project.config.json`, `.github/workflows/ci.yml`, `.gitignore`, `.npmignore`.
+- Rewrote `test/skills.test.js` to work without `skills-index.json` and `.codex/`.
+
 ## v0.14.0 (2026-08-07) — SAC Core 与 Codex / Claude Code 双适配
 
 ### 改进
