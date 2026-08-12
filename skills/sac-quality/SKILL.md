@@ -1,45 +1,53 @@
 ---
 name: sac-quality
-description: Review SAC Terraform and delivery evidence. Use for validate, static tests, security audits, architecture or documentation consistency, diff impact, accepted risk, release readiness, or remediation verification.
+description: Review SAC Terraform and deployment assets. Use for validation, security audit, architecture/documentation consistency, diff impact, release readiness, or remediation verification.
 ---
 
 # SAC Quality Core
 
-Perform an evidence-based review of the requested scope. Reviews are read-only unless remediation is explicitly
-requested; implementation fixes belong to the Builder using `sac-implementation`. Static evidence never proves
-a real cloud deployment succeeded.
+Perform evidence-based review focused on **能否成功部署**。Reviews are read-only unless remediation is explicitly
+requested. Static evidence never proves a real cloud deployment succeeded.
 
 Use with `sac-project`. Read the frozen architecture contract or explicit maintenance request, exact diff,
 current Terraform and documents, `project.config.json` (or `.sac/project.config.json` in an installed host),
-`skills/reference/validation-checklist.md`, and `skills/reference/security-check-rules.md`. Read the relevant
-layout or release contract only when that scope is under review.
+and `skills/reference/validation-checklist.md` / `skills/reference/security-check-rules.md` as applicable.
+Read the relevant layout or release contract only when that scope is under review.
 
-## Review scope
+## 审查核心：三问
 
-Cover the parts affected by the task:
+以"能否成功部署"为审查标准，聚焦三个核心问题：
 
-1. Terraform syntax, formatting, provider shape, variables, validations, outputs, and dependency references;
-   specifically verify:
-   - no `validation` block references a variable other than its own (Terraform rejects cross-variable conditions);
-   - no `*_password` variable contains a `validation` block (password policy is enforced by the cloud API);
-   - no `output` joins unrelated values with `|`, commas, or other decorative separators.
-   - `system_disk_type` is `"GPSSD"` unless the architecture contract explicitly overrides;
-   - `system_disk_size` variable `description` does not mention a disk type;
-   - bootstrap log destination is `/var/log/{solution_name}-install.log`;
-   - no `bun install -g` in `user_data` (use `npm install -g` when npm is available);
-   - China templates use `docker.wangzhou3.top/` image prefix for Docker Hub images;
-     International templates use official Docker Hub or `ghcr.io` — no China-only mirror.
-2. directory and artifact layout, exactly one deployable file per instance, and formal-scope consistency;
-3. architecture-contract parity for resources, topology, network, storage, data, bootstrap, availability,
-   operations, billing, and accepted deviations;
-4. rendered `user_data`, shell, Compose or service configuration, startup order, persistence, and idempotency;
-5. security exposure, secrets, privileges, dependency provenance, data protection, and sensitive artifacts;
-6. document parity for parameters, defaults, ports, endpoints, limitations, rollback, and validation claims;
-7. change impact on defaults, resource behavior, replacement risk, compatibility, and surrounding variants;
-8. release provenance, deterministic packaging, checksums, and source equality when delivery is requested.
+### 1. 语法正确性 — 代码能否被正确解析和执行？
 
-For a narrow change, review the changed item and its real callers or consumers. For a new Practice,
-architecture change, security request, or release gate, cover the complete affected instance and documents.
+- Terraform HCL 语法、格式化、provider 声明、变量和 validation 块是否合规？
+- `user_data` Bash 脚本能否被 Bash 正确解析（`bash -n` 检查）？
+- Docker Compose YAML 是否格式正确？
+- 变量完整性：所有变量都声明了 `default`、`description`、`type`、`nullable`？
+- 依赖引用：Terraform 资源间引用是否形成正确的依赖图？（无循环引用、无引用不存在的资源）
+- `validation` 块是否只引用自己的变量（Terraform 拒绝跨变量条件）？
+
+### 2. 安全基线 — 是否存在可部署的安全风险？
+
+- **凭证泄露**：是否有 AK/SK、API Key、Token、密码硬编码在模板或输出中？
+- **密码变量**：`*_password` 是否标记 `sensitive = true`？是否被输出到 output、URL 或日志？
+- **网络暴露**：数据库、缓存、Docker API、调试端口等内部服务是否被公网暴露？
+- **管理入口**：SSH 是否限制为 CloudShell `/32` 源，而非 `0.0.0.0/0`？
+- **容器风险**：是否有无依据的 `privileged`、Docker socket、host network 或危险挂载？
+
+### 3. 可部署性 — 模板在实际环境中能否成功部署？
+
+- **变量完整性**：是否存在未提供默认值且非 `nullable` 的变量，会导致 apply 失败？
+- **镜像可达性**：China 模板使用 `docker.wangzhou3.top/` 前缀？International 模板使用官方源？
+- **启动顺序**：服务间依赖是否通过 Docker Compose `depends_on` 或简单脚本控制？
+- **日志可追溯**：是否将 bootstrap 输出重定向到 `/var/log/{solution_name}-install.log`？
+- **幂等性**：包管理命令是否幂等？数据库初始化是否使用 `CREATE IF NOT EXISTS` 模式？
+- **权限正确性**：bind-mount 的文件是否可被容器非 root 进程读取（`chmod 0644`）？避免全局 `umask 077` 破坏容器文件读取
+
+### 附加检查（按需）
+
+- **架构一致性**：资源、拓扑、网络、存储、计费、HA 是否与架构合同一致？
+- **文档一致性**：参数表、端口、端点、安全声明、回滚说明是否与 Terraform 一致？
+- **变更影响**：默认值变更是否会导致资源替换？兼容性影响？
 
 ## Static validation
 
@@ -49,91 +57,42 @@ Use existing repository entry points rather than reimplementing checks:
 .venv-sac/bin/python -m scripts.tests.runner
 ```
 
-In an npm-installed host use:
+In an npm-installed host:
 
 ```bash
 PYTHONPATH=.sac/tooling .venv-sac/bin/python -m scripts.tests.runner
 ```
 
-Run narrower instance checks when the task scope is small. As applicable also run `terraform fmt -check`,
-`terraform validate` in an initialized offline-capable environment, HCL or JSON parsing, rendered Bash syntax,
-Compose validation, and the instance-scoped `rfs_policy`. If Terraform providers, plugins, credentials, or
-network are unavailable, report the skipped command and cause; do not turn an environment limitation into a
-pass or a code defect.
+Run narrower instance checks when the task scope is small. Also run `terraform fmt -check`,
+`terraform validate` in an initialized offline-capable environment, HCL/JSON parsing, rendered Bash syntax
+(`bash -n`), Compose validation, and instance-scoped `rfs_policy` as applicable. If Terraform providers,
+plugins, credentials, or network are unavailable, report the skipped command and cause.
 
 Separate:
-
 - automatically executed results with command and exit code;
 - manual findings backed by file and line evidence;
 - environment or tool limitations;
 - real-cloud checks not run.
 
-## Security review
-
-Security review is part of the Reviewer capability and must not be silently omitted from a full review or
-release-readiness decision. At minimum inspect:
-
-### Secrets and identity
-
-- embedded AK/SK, API keys, tokens, passwords, private endpoints, or private bucket data;
-- secret interpolation into Terraform state, `user_data`, command lines, URLs, outputs, logs, documents, or
-  archives;
-- password generation, storage, file permissions, rotation boundary, and credential-retrieval guidance;
-- excessive cloud permissions and undocumented identity assumptions.
-
-Never reproduce a suspected secret in full. Record location and type only.
-
-### Network and service exposure
-
-- ingress and egress CIDRs, ports, protocols, administrative access, TLS termination, and public-entry intent;
-- public database, cache, Docker API, debugger, metrics, or control-plane exposure;
-- security-group parity with the architecture contract and documents;
-- trust boundaries between application, data services, external APIs, and management access.
-
-### Runtime and supply chain
-
-- privileged containers, host networking, Docker socket, dangerous host mounts, writable system paths, and
-  runtime user;
-- image source, immutable revision, installer provenance, package sources, and unverified remote execution;
-- bootstrap failure handling, sensitive debug output, unsafe permissions, and persistence choices.
-
-### Data and operations
-
-- encryption and TLS assumptions, backups, restore path, deletion behavior, logs, tenant or user data, and
-  recovery limits;
-- artifacts or local packages containing credentials, transient files, private URLs, or unverifiable content.
-
-Distinguish an approved public image proxy from a credential. Report untested runtime assumptions separately.
-
-## Architecture and document consistency
-
-Every resource and customer-facing value must trace to the architecture contract or explicit maintenance
-request. Flag unapproved resources, missing dependencies, broader ingress, changed defaults, altered durability,
-unexplained cost, and HA claims unsupported by the topology.
-
-Compare Terraform and `.extension` against every affected parameter table, deployment step, endpoint, output,
-security statement, rollback instruction, and cloud-test claim. Documentation must not state that static checks
-proved a live deployment.
-
-## Findings and accepted risk
+## Findings and classification
 
 Classify findings by release impact:
 
 - **blocker**: invalid or undeployable template, formal contract violation, critical/high security exposure,
-  secret disclosure, architecture conflict, unusable required document, or unverifiable delivery;
-- **non-blocking**: material warning, incomplete optional coverage, maintainability issue, or defense-in-depth
-  opportunity that does not invalidate the configured gate;
+  secret disclosure, architecture conflict, or unverifiable delivery.
+- **non-blocking**: material warning, incomplete coverage, maintainability issue, or defense-in-depth
+  opportunity that does not block the configured gate.
 - **info**: evidence or improvement without release impact.
 
-For security findings also retain `critical`, `high`, `medium`, or `low` severity. A critical or high security
-finding is always a blocker unless an authorized, scope-specific accepted risk already exists. Accepted risk must
-record owner or authority, exact scope, rationale, evidence, expiry or review condition, and compensating control.
-Do not create or broaden accepted risk during review, and do not hide the underlying finding.
+Security severity:
+- **critical**: direct credential compromise, unauthenticated sensitive control, or equivalent immediate impact.
+- **high**: practical remote compromise, broad privileged exposure, or release-blocking secret handling.
+- **medium**: defense-in-depth gap with meaningful prerequisites.
+- **low**: limited hardening opportunity.
 
-- `critical`: direct credential compromise, unauthenticated sensitive control, or equivalent immediate impact;
-- `high`: practical remote compromise, broad privileged exposure, or release-blocking secret handling;
-- `medium`: a defense-in-depth gap with meaningful prerequisites;
-- `low`: a limited hardening opportunity.
+A critical or high security finding is always a blocker unless an authorized, scope-specific accepted risk
+already exists (with owner, scope, rationale, evidence, expiry, and compensating control). Do not create or
+broaden accepted risk during review.
 
 ## Result contract
 

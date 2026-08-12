@@ -94,9 +94,10 @@ runtime-adapter concern.
 ## Change rules
 
 - Preserve user changes and inspect every caller or reference before moving or renaming an asset.
-- Make the smallest change that satisfies the frozen architecture contract or explicit maintenance request.
+- Make the change that enables **successful deployment**. Prefer minimal changes but do not skip reliability
+  measures (startup ordering, health checks, dependency waits) for the sake of minimalism.
 - Do not change resource topology, defaults, dependencies, ingress, storage durability, billing, or bootstrap
-  behavior as cleanup.
+  behavior unless the architecture contract or deployment reliability requires it.
 - Start a new candidate at `_v1`; use the next `_vN` for behavior changes. Candidate and formal names never
   coexist, and promotion requires explicit approval.
 - Never write credentials, tokens, private endpoints, or private bucket data to source, artifacts, or logs.

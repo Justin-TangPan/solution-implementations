@@ -2,7 +2,7 @@
 
 **AI 编码代理的规范技能定义** — 面向华为云解决方案实践的工程规则、验证检查清单与架构合同。
 
-[![npm version](https://img.shields.io/badge/version-0.16.1-blue)](https://github.com/Justin-TangPan/solution-practices)
+[![npm version](https://img.shields.io/badge/version-0.17.0-blue)](https://github.com/Justin-TangPan/solution-practices)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -170,7 +170,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 | 版本 | 日期 | 概要 |
 |---|---|---|
-| v0.16.1 | 2026-08-12 | Skills Terraform 编码约束强化：GPSSD 硬约束、日志路径规范、CN 镜像加速规则、质量门禁同步更新 |
+| v0.17.0 | 2026-08-12 | Skills 极简重构：以成功部署为核心，删除过度限制，user_data 极简化 |
 | v0.16.0 | 2026-08-11 | 最终清理：删除废弃工作流、悬空引用修复、61 个跟踪文件 |
 | v0.15.0 | 2026-08-11 | Skills-core 重新定位：删除非核心资产，收敛为纯技能项目 |
 | v0.14.0 | 2026-08-07 | SAC Core 双适配（Codex + Claude Code），五个核心技能收敛 |

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.17.0 (2026-08-12) — Skills 极简重构：以成功部署为核心
+
+### Changed
+
+- **sac-implementation**: 全面重构，改为"一切以成功部署为目标"基调
+  - 删除 13 条过度禁止条款（ordering/retries/bun/umask 等）
+  - user_data 从 68 行过度管制简化为主线模板 + 6 条极简原则
+  - 变量验证表简化，移除过于具体的 flavor 正则
+- **sac-quality**: 审查框架精简为核心三问（语法正确性/安全基线/可部署性）
+  - 删除样式偏好检查，行数缩减 31%
+- **sac-project**: 弱化"最小改动"教条，允许可靠性措施
+
 ## v0.16.1 (2026-08-12) — Terraform AI coding constraint hardening
 
 ### Changes
