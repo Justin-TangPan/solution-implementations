@@ -1,6 +1,6 @@
 {
   "name": "solution-practices",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "Canonical skill definitions for AI coding agents that build, review, and deploy Huawei Cloud Solution Practices",
   "type": "module",
   "files": [

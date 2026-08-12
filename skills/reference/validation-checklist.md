@@ -16,7 +16,10 @@
 ## 部署逻辑
 
 - 包管理命令非交互、可重复执行，并使用与站点匹配且已验证的软件源。
-- `cn` 保留官方 Docker Hub 镜像名，通过已验证的 registry mirror 加速；`intl` 使用官方 Docker Hub 或 `ghcr.io`。
+- `system_disk_type` 为 `GPSSD`；`system_disk_size` 的 `description` 不包含磁盘类型。
+- 日志重定向到 `/var/log/{solution_name}-install.log`（`LOGFILE` 变量 + `exec` 重定向）。
+- `user_data` 中不使用 `bun install -g`；当 npm 已安装时使用 `npm install -g`。
+- `cn` 模板使用 `docker.wangzhou3.top/` 作为 Docker Hub 镜像前缀；`intl` 使用 `docker.io` 或 `ghcr.io`。
 - 配置和有状态目录持久化；数据库初始化幂等，权限和 schema 完整。
 - `user_data` 是单段内联 Bash，并保留 Hermes 基线形状；仅为上游已验证的运行方式修改运行时命令，任何偏离必须记录在 architecture contract。
 - 有一个简短的 `access_instructions` 或 `access_info` 主输出；用户必须单独获取的 API 地址、SSH 命令、凭证查看命令、日志路径等使用独立、有意义的 `snake_case` outputs，不用 `|` 或其他装饰分隔符拼接。

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.16.1 (2026-08-12) — Terraform AI coding constraint hardening
+
+### Changes
+
+- `skills/sac-implementation/SKILL.md`: GPSSD changed from "default" to hard requirement
+  (SAS, SSD prohibited). Added bootstrap log path rule (`/var/log/{solution_name}-install.log`),
+  ban on `bun install -g`, China/international deployment differences table
+  (`docker.wangzhou3.top/` image prefix for CN), and the combined flavor regex matching
+  both CN and international naming conventions.
+- `skills/sac-quality/SKILL.md`: Added 5 reviewer checkpoints (GPSSD, log destination,
+  no `bun install -g`, CN image prefix, disk type not in description).
+- `skills/reference/validation-checklist.md`: Synced corresponding checklist items.
+- README localized to Chinese as the default documentation language.
+
 ## v0.16.0 (2026-08-11) — Final cleanup and workflow removal
 
 ### Breaking changes

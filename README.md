@@ -1,54 +1,111 @@
 # Solution Practice Skills
 
-Canonical skill definitions for AI coding agents that build, review, and deploy Huawei Cloud Solution Practices.
+**AI 编码代理的规范技能定义** — 面向华为云解决方案实践的工程规则、验证检查清单与架构合同。
 
-## What this is
+[![npm version](https://img.shields.io/badge/version-0.16.1-blue)](https://github.com/Justin-TangPan/solution-practices)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-A **skills-core** package: structured SKILL.md files encoding engineering rules, validation checklists,
-architecture contracts, and task-routing logic. Designed for consumption by Claude Code and compatible
-AI coding tools.
+---
 
-The project does not call language models, provide an Agent Runtime, or deploy real cloud resources.
-Skills are configuration, prompts, and engineering rules read by host tools.
+## 概述
 
-## Core skills
+SAC（Solution Practice Skills）是一个 **skills-core** 项目。主要交付物是 `skills/` 目录下的规范 SKILL.md 文件，这些文件编码了 AI 编码代理在构建、审查和部署华为云解决方案实践时所需的工程规则、验证检查清单和架构设计合同。
 
-| Skill | Purpose |
+项目本身**不调用语言模型**、**不提供 Agent Runtime**，也**不部署真实云资源**。技能文件是配置、提示词和工程规则，由宿主工具（如 Claude Code）读取和执行。
+
+---
+
+## 核心技能
+
+| 技能 | 用途 |
 |---|---|
-| `sac-project` | Project scope, layout, truth sources, and authorization |
-| `sac-architecture` | Design contracts, topology, HA, and upstream research |
-| `sac-implementation` | Terraform, variables, outputs, user_data, and bootstrap |
-| `sac-quality` | Validation, security review, consistency, and release gates |
-| `sac-documentation` | Deployment guides, parameter tables, and bilingual docs |
+| `sac-project` | 项目范围、目录布局、事实源与授权边界 |
+| `sac-architecture` | 架构设计合同、拓扑、高可用方案与上游研究 |
+| `sac-implementation` | Terraform 实现、变量、输出、user_data 与初始化脚本 |
+| `sac-quality` | 静态验证、安全审查、一致性检查与发布门禁 |
+| `sac-documentation` | 部署指南、参数表格与中英文双语文档生成 |
 
-## Optional skills
+## 可选技能
 
-| Skill | Purpose |
+| 技能 | 用途 |
 |---|---|
-| `sac-deep-search` | Cross-domain, multi-source research for disputed topics |
-| `sac-page-enhance` | Web presentation enhancements |
-| `query-huawei-cloud-prices` | Huawei Cloud price and flavor queries |
+| `sac-deep-search` | 争议性话题的跨领域、多来源深度研究 |
+| `sac-page-enhance` | Web 呈现层增强 |
+| `query-huawei-cloud-prices` | 华为云产品价格与规格实时查询 |
 
-## Project structure
+---
+
+## 角色路由
+
+项目定义三种核心 AI 角色，根据任务类型选择最简角色序列：
+
+| 任务 | 推荐角色 / 流程 | 所需技能 |
+|---|---|---|
+| 新方案 / 拓扑 / 高可用 / 数据库 / 存储 / 网络设计 | **架构师** → **实施者** → **审查者** | `sac-project` + `sac-architecture` + `sac-implementation` + `sac-quality` |
+| Terraform 维护 / 变量 / 输出 / 初始化脚本变更 | **实施者**；中高风险添加**审查者** | `sac-project` + `sac-implementation` |
+| 安全审查 / 质量门禁 / 差异分析 / 发布就绪度检查 | **审查者** | `sac-project` + `sac-quality` |
+| 部署文档与参数描述更新 | **实施者**（按需加载文档技能） | `sac-project` + `sac-documentation` |
+
+> 小型任务不需要三个子代理。始终选择足以完成任务的最简角色序列。
+
+---
+
+## 项目结构
 
 ```
-skills/                          # Canonical skill definitions
-  sac-*/SKILL.md                 # Core and optional skills
-  reference/                     # Shared reference documents
-  query-huawei-cloud-prices/     # Price query skill with scripts
-.claude/                         # Claude Code adapter
-  skills/                        # Discovery wrappers → canonical skills
-  agents/                        # Role definitions (architect, builder, reviewer)
-  workflows/                     # Workflow scripts
-scripts/tests/                   # Quality gate test runner
-docs/contracts/                  # Distribution and layout contracts
-project.config.json              # Skills registry and capabilities
+skills/                                          # 规范技能定义（核心交付物）
+├── sac-project/SKILL.md                         # 项目范围与配置规则
+├── sac-architecture/SKILL.md                    # 架构设计规则
+├── sac-implementation/SKILL.md                  # 实现与 Terraform 规则
+├── sac-quality/SKILL.md                         # 质量审查与验证规则
+├── sac-documentation/SKILL.md                   # 文档生成规则
+├── sac-deep-search/SKILL.md                     # 可选：深度搜索
+├── sac-page-enhance/SKILL.md                    # 可选：页面增强
+├── query-huawei-cloud-prices/                   # 可选：华为云价格查询技能
+│   ├── SKILL.md
+│   ├── scripts/                                 # 价格查询脚本
+│   └── references/
+└── reference/                                   # 共享参考文档
+    ├── validation-checklist.md                  # 验证检查清单
+    ├── security-check-rules.md                  # 安全检查规则
+    ├── decision-framework.md                    # 决策框架
+    ├── doc-templates.md                         # 文档模板规范
+    ├── region-mapping.md                        # 区域代码映射表
+    ├── docker-registry.md                       # 镜像加速与仓库规范
+    └── skill-zone-rules.md                      # 技能上下文分区规则
+
+.claude/                                         # Claude Code 适配层
+├── CLAUDE.md                                    # 项目指令（事实源）
+├── skills/                                      # 技能发现包装器 → 指向规范技能
+├── agents/                                      # 角色定义（architect, builder, reviewer）
+└── workflows/                                   # 工作流脚本
+
+scripts/tests/                                   # 质量门禁测试运行器
+├── runner.py                                    # Python 质量门禁入口
+└── checks/                                      # 各维度检查实现
+
+docs/contracts/                                  # 分发契约
+├── npm-distribution.md                          # npm 包分发契约
+├── practice-layout.md                           # 实践目录布局契约
+├── release-contract.md                          # 发布契约
+├── script-policy.md                             # 脚本策略契约
+└── skill-status.md                              # 技能状态契约
+
+project.config.json                              # 技能注册表与代理能力定义
+package.json                                     # npm 包元数据
 ```
 
-## Usage
+---
 
-Install as an npm package or clone directly. AI coding agents discover skills through
-`.claude/skills/` (Claude Code) or the configured adapter path.
+## 使用方式
+
+### 作为 npm 包安装
+
+```bash
+npm install solution-practices
+```
+
+### 直接克隆仓库
 
 ```bash
 git clone https://github.com/Justin-TangPan/solution-practices.git
@@ -57,14 +114,99 @@ npm ci
 npm test
 ```
 
-## Development
+### AI 代理发现技能
+
+Claude Code 通过 `.claude/skills/` 目录自动发现技能包装器。每个包装器指向 `skills/<name>/SKILL.md` 中的规范定义。代理根据任务类型加载相关技能，避免上下文污染。
+
+---
+
+## 开发指南
+
+### 前置要求
+
+- Node.js >= 20
+- Python 3.10+（质量门禁测试）
+- Git
+
+### 验证命令
 
 ```bash
+# Skills 结构测试（Node）
 npm test
+
+# Python 质量门禁
 .venv-sac/bin/python -m scripts.tests.runner
+
+# 打包检查
 npm run pack:check
 ```
 
-## License
+### 提交规范
 
-MIT
+```
+<type>: <简短描述>
+
+- <具体改动 1>
+- <具体改动 2>
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+类型：`feat` / `fix` / `refactor` / `test` / `docs` / `chore`
+
+### Terraform 约定
+
+- 密码/密钥变量必须设置 `sensitive = true`
+- 密码变量**不加** `validation` 块，由云 API 策略校验
+- `validation` 块只能引用自身变量（不支持跨变量引用）
+- 安全组规则必须限制源 IP，禁止 `0.0.0.0/0`
+- 所有变量必须包含 `description` 字段
+- 输出值使用独立 `output` 块，禁止 `|` 或逗号拼接
+- 区域代码统一使用标准命名（`cn-north-4`、`ap-southeast-1` 等）
+
+---
+
+## 版本历程
+
+| 版本 | 日期 | 概要 |
+|---|---|---|
+| v0.16.1 | 2026-08-12 | Skills Terraform 编码约束强化：GPSSD 硬约束、日志路径规范、CN 镜像加速规则、质量门禁同步更新 |
+| v0.16.0 | 2026-08-11 | 最终清理：删除废弃工作流、悬空引用修复、61 个跟踪文件 |
+| v0.15.0 | 2026-08-11 | Skills-core 重新定位：删除非核心资产，收敛为纯技能项目 |
+| v0.14.0 | 2026-08-07 | SAC Core 双适配（Codex + Claude Code），五个核心技能收敛 |
+| v0.13.0 | 2026-08-06 | 工作流与仓库结构收敛，华为云价格查询技能 |
+| v0.12.0 | 2026-07-27 | 发布一致性修复，正式范围固化 |
+| v0.11.0 | 2026-07-21 | Skills 精准路由与本地工具链 |
+| v0.10.0 | 2026-07-20 | SAC Web 纳入 GitHub 发布 |
+| v0.9.x | 2026-07 | 文档流水线、npm CLI、多 Practice 候选发布 |
+| v0.6.x | 2026-07 | 区域重构、安全修复、Supabase 方案完善 |
+| v0.5.x | 2026-06 | SAC Web 可视化平台、业务评估 Skill |
+| v0.4.x–v0.0.x | 2026-05~06 | 初始版本与迭代演进 |
+
+详细变更请参阅 [CHANGELOG.md](CHANGELOG.md)。
+
+---
+
+## 安全注意事项
+
+- **不要** 在代码中提交真实 AK/SK、密码或令牌
+- **不要** 提交 `.tfvars` 文件到仓库
+- **不要** 提交 `.secrets/`、`.env` 或 OBS 凭证
+- 敏感信息应通过环境变量或 RFS 参数传递
+- 发现安全漏洞请联系维护者
+
+---
+
+## 许可
+
+[MIT](LICENSE)
+
+---
+
+## 相关链接
+
+- [GitHub 仓库](https://github.com/Justin-TangPan/solution-practices)
+- [Issue 跟踪](https://github.com/Justin-TangPan/solution-practices/issues)
+- [贡献指南](CONTRIBUTING.md)
+- [所有权与资产归属](OWNERSHIP.md)
+- [代理协作规则](AGENTS.md)

@@ -85,10 +85,15 @@ validation only for its own variable and only when the implementation contract r
    character set; regex validation in Terraform frequently rejects legitimate passwords. Let the cloud API
    enforce its own policy and return clear errors at apply time.
 
-3. **Flavor format check only.** ECS flavor (`ecs_flavor`) validation uses a basic format check
-   (`can(regex("[a-zA-Z]", var.ecs_flavor)) && can(regex("[0-9]", var.ecs_flavor))`) — at least one letter
-   and one digit. Do not enumerate specific flavor IDs; available flavors differ by Region and change
-   frequently. The format check catches empty or degenerate input without becoming stale.
+3. **Flavor format.** ECS flavor validation matches the two supported naming conventions:
+   - International: `{family}.{size}xlarge.{generation}` (e.g. `c7n.2xlarge.2`)
+   - CN: `x1.{cpu}u.{mem}g` (e.g. `x1.4u.8g`)
+   Use the combined regex:
+   ```
+   ^([a-z][a-z0-9]{0,3}\.)(x|[1-9][0-9]{0,1}x)large\.[1-9][0-9]{0,1}$|^x1\.([1-9]|1[0-6])u\.([1-9][0-9]{0,1}|1[0-2][0-8])g$
+   ```
+   Do not use a simpler "at least one letter and one digit" check — the combined regex prevents
+   mistyped flavor strings while accepting both CN and international formats.
 
 | Variable | Default | Type / nullable | Required rule |
 |---|---|---|---|
@@ -117,15 +122,27 @@ descriptions short and ASCII-only. Never output a password, token, generated sec
 
 - Preserve the canonical image and `agent_list` unless the architecture contract records a regional or upstream
   reason to change them.
-- Use `GPSSD` as the default EVS type for the baseline and keep `delete_disks_on_termination` exactly aligned
-  with the durability decision.
+- Use `GPSSD` as the required EVS type. Every template must set `system_disk_type = "GPSSD"`.
+  Do not use `SAS`, `SSD`, or any other type unless the architecture contract explicitly overrides.
+  The `system_disk_size` variable description must not mention disk type — disk type is a
+  resource attribute, not a sizing parameter.
+  Keep `delete_disks_on_termination` exactly aligned with the durability decision.
 - Current formal policy requires an EIP and `bandwidth_size`; preserve its billing mode and the approved
   application ingress scope.
 - Keep administrative SSH at `121.36.59.153/32`. Open only the approved application ports. Never expose a
   database, cache, Docker API, debugger, or internal control port.
 - Use no random provider or random resource names.
-- For China containers use the repository-approved Huawei Cloud Docker CE installation and registry mirror;
-  for international deployments use the approved official source and no China-only mirror.
+- China vs international deployment differences:
+
+  | Dimension | China (cn-*) | International |
+  |---|---|---|
+  | Docker image prefix | `docker.wangzhou3.top/` (e.g. `docker.wangzhou3.top/library/postgres:16`) | Official Docker Hub or `ghcr.io` |
+  | Docker daemon mirror | `"registry-mirrors": ["https://docker.wangzhou3.top"]` | None (direct pull) |
+  | Docker CE source | Huawei Cloud apt mirror | Official Docker CE source |
+  | apt/npm upstream | Default Huawei Cloud or mirror | Default official |
+
+  China templates must use `docker.wangzhou3.top/` as image prefix for every Docker Hub image
+  in Compose files. Never use `docker.wangzhou3.top/` outside China templates.
 - Mark secret inputs sensitive, keep generated runtime secrets on the instance with restrictive permissions,
   and never place secret values in URLs, outputs, logs, archives, or documentation.
 - Passing an established RFS password input through `user_data` is a reviewable compatibility exposure, not a
@@ -137,6 +154,19 @@ descriptions short and ASCII-only. Never output a password, token, generated sec
   The `user_data` heredoc delimiter must be **unquoted** (`<<-EOT`, not `<<-'EOT'`) so Terraform interpolates
   `var.ecs_password` at render time. Do not use Base64 encode/decode wrappers or intermediate variables for the
   root password — the inline `echo` + `chpasswd` pattern is sufficient and avoids unnecessary complexity.
+
+- Redirect bootstrap output to `/var/log/{solution_name}-install.log`. Use the pattern immediately
+  after `export DEBIAN_FRONTEND=noninteractive`:
+  ```bash
+  LOGFILE="/var/log/${var.solution_name}-install.log"
+  exec 1>"$LOGFILE" 2>&1
+  ```
+  Do not place logs in `/var/`, `/tmp/`, or the working directory — only `/var/log/`.
+
+- When a system package manager (apt, yum) already provides Node.js/npm, use `npm install -g`
+  for global Node.js tools. Do not use `bun install -g` — Bun's global directory is not
+  reliably initialized in a bootstrap context. Prefer the package manager that matches the
+  runtime already installed.
 
 ## Local checks and fix loop
 

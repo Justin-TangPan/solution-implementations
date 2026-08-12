@@ -23,6 +23,12 @@ Cover the parts affected by the task:
    - no `validation` block references a variable other than its own (Terraform rejects cross-variable conditions);
    - no `*_password` variable contains a `validation` block (password policy is enforced by the cloud API);
    - no `output` joins unrelated values with `|`, commas, or other decorative separators.
+   - `system_disk_type` is `"GPSSD"` unless the architecture contract explicitly overrides;
+   - `system_disk_size` variable `description` does not mention a disk type;
+   - bootstrap log destination is `/var/log/{solution_name}-install.log`;
+   - no `bun install -g` in `user_data` (use `npm install -g` when npm is available);
+   - China templates use `docker.wangzhou3.top/` image prefix for Docker Hub images;
+     International templates use official Docker Hub or `ghcr.io` — no China-only mirror.
 2. directory and artifact layout, exactly one deployable file per instance, and formal-scope consistency;
 3. architecture-contract parity for resources, topology, network, storage, data, bootstrap, availability,
    operations, billing, and accepted deviations;

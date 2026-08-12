@@ -6,9 +6,9 @@ const config = JSON.parse(await readFile('project.config.json', 'utf8'));
 const capabilities = config.agent_capabilities;
 
 function frontmatter(source) {
-  const match = source.match(/^---\n([\s\S]*?)\n---/);
+  const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   assert.ok(match, 'missing frontmatter');
-  return Object.fromEntries(match[1].split('\n').filter(Boolean).map((line) => {
+  return Object.fromEntries(match[1].split(/\r?\n/).filter(Boolean).map((line) => {
     const separator = line.indexOf(':');
     return [line.slice(0, separator), line.slice(separator + 1).trim()];
   }));
