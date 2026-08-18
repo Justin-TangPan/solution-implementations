@@ -7,11 +7,79 @@
 - 默认标准版位于 `practices/<practice>/<site>/<region>/`；仅同一 Region 有多个部署形态时使用 `<region>/<variant>/`；不建 `terraform/`，locale 仅用于 `intl/docs/<locale>/`。
 - 每个 deployable instance 只有一个可加载 `.tf` 或 `.tf.json`，不得混用。
 - 新 ECS 模板从基线顺序复制，保持 provider、变量、镜像、网络、EIP、ECS、outputs 的固定顺序。
-- 每个变量都显式声明 `default`、`description`、`type`、`nullable`；`ecs_password` 还必须为 `sensitive = true`。只使用 Hermes 基线的对应 validation，密码由 RFS/ECS 原生校验。
+- 每个变量都显式声明 `default`、`description`、`type`、`nullable`；`ecs_password` 还必须为 `sensitive = true`。密码变量（`*_password`）不设 `validation` 块，由 RFS/ECS 原生校验；其余变量使用 `length(regexall(...)) > 0` 风格的纯正则校验（详见下方"变量校验规则"章节）。
 - `required_providers` 是对象且只声明实际需要的 Provider；Provider 配置只包含 `region`。
 - 资源命名来自 `var.solution_name` 或稳定用户输入，不使用 UUID 或随机 Provider。
 - 标准模板使用全内联 `user_data`，不依赖远端安装脚本。
 - Terraform heredoc 中 Shell 命令替换使用 `$()`；只对需保留给下游配置的 `${...}` 使用 `$${...}`。
+
+## 变量校验规则（Validation Condition）
+
+所有 `validation` 块的 `condition` 必须遵守以下规范，确保 RFS 参数填写阶段即可触发校验并显示 `error_message`。
+
+### 1. 统一使用 `length(regexall(...)) > 0` 风格
+
+```hcl
+# ✅ 正确
+condition = length(regexall("^正则表达式$", var.xxx)) > 0
+
+# ❌ 禁止
+condition = can(regex("^正则表达式$", var.xxx))
+condition = var.xxx >= 1 && var.xxx <= 300
+condition = contains(["a", "b"], var.xxx)
+condition = length(var.xxx) >= 8
+```
+
+### 2. 数字变量不加 `tostring()`
+
+`regexall()` 直接接收 `type = number` 的变量。加 `tostring()` 会导致 RFS 参数填写阶段校验不触发，只有部署后才报错。
+
+```hcl
+# ✅ 正确
+condition = length(regexall("^([1-9][0-9]{0,1}|[1-2][0-9]{2}|300)$", var.bandwidth_size)) > 0
+
+# ❌ 禁止
+condition = length(regexall("^...$", tostring(var.bandwidth_size))) > 0
+```
+
+### 3. 密码变量不做校验
+
+`ecs_password`、`db_password`、`*_password` 等 sensitive 变量不设 `validation` 块，由云平台 API 原生校验密码策略。
+
+### 4. 数字范围正则分段写法
+
+| 范围 | 正则 | 说明 |
+|---|---|---|
+| 1–9 | `^[1-9]$` | 单数字 |
+| 1–300 | `^([1-9][0-9]{0,1}\|[1-2][0-9]{2}\|300)$` | 1–9 + 10–99 + 100–299 + 300 |
+| 40–1024 | `^([4-9][0-9]\|[1-9][0-9]{2}\|100[0-9]\|101[0-9]\|102[0-4])$` | 40–99 + 100–999 + 1000–1019 + 1020–1024 |
+
+### 5. 枚举值正则写法
+
+```hcl
+# ✅ 正确
+condition = length(regexall("^(postPaid|prePaid)$", var.charging_mode)) > 0
+condition = length(regexall("^(month|year)$", var.charging_unit)) > 0
+
+# ❌ 禁止
+condition = contains(["postPaid", "prePaid"], var.charging_mode)
+```
+
+### 6. ECS 实例规格正则
+
+覆盖华为云两种规格格式：
+
+```hcl
+condition = length(regexall("^([a-z][a-z0-9]{0,3}\\.)(x|[1-9][0-9]{0,1}x)large\\.[1-9][0-9]{0,1}$|^x1\\.([1-9]|1[0-6])u\\.[1-9][0-9]{0,1}g$", var.ecs_flavor)) > 0
+```
+
+- 分支1：`c7n.2xlarge.2` 型 — 前缀 + Nx/x + large + 后缀
+- 分支2：`x1.8u.16g` 型 — x1 + Nu + Ng
+
+### 7. error_message 语言
+
+- **中国站（cn）**：`error_message` 使用中文
+- **国际站（intl）**：`error_message` 使用英文
 
 ## 部署逻辑
 

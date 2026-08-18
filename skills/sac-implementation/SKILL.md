@@ -134,6 +134,17 @@ Add a `validation` block only when the implementation contract requires it. Pass
 (`ecs_password`, `db_password`, `*_password`) must **not** include a `validation` block — let the cloud API
 enforce its own password policy.
 
+### Validation condition rules
+
+All `validation` blocks must follow these rules (see `skills/reference/validation-checklist.md` for full detail):
+
+1. **Use `length(regexall(...)) > 0` style** — never `can(regex(...))`, inequality operators (`>=`, `<=`), `contains()`, or `length() >=`.
+2. **No `tostring()` on number variables** — `regexall()` accepts `type = number` directly; wrapping with `tostring()` breaks RFS parameter-stage validation.
+3. **No validation on password variables** — `*_password` variables omit the `validation` block entirely.
+4. **Numeric ranges use regex segment matching** — e.g. 1–300 → `^([1-9][0-9]{0,1}|[1-2][0-9]{2}|300)$`.
+5. **Enum values use alternation** — e.g. `^(postPaid|prePaid)$` instead of `contains([...])`.
+6. **`error_message` language** — Chinese for `cn` templates, English for `intl` templates.
+
 | Variable | Default | Type / nullable | Notes |
 |---|---|---|---|
 | `solution_name` | confirmed lowercase name | `string` / `false` | description states naming rule |

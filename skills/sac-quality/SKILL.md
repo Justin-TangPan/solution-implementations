@@ -25,6 +25,10 @@ Read the relevant layout or release contract only when that scope is under revie
 - 变量完整性：所有变量都声明了 `default`、`description`、`type`、`nullable`？
 - 依赖引用：Terraform 资源间引用是否形成正确的依赖图？（无循环引用、无引用不存在的资源）
 - `validation` 块是否只引用自己的变量（Terraform 拒绝跨变量条件）？
+- `validation` condition 是否使用 `length(regexall(...)) > 0` 风格？禁止 `can(regex(...))`、不等式（`>=`/`<=`）、`contains()`、`length() >=`。
+- 数字变量的 `regexall()` 是否直接接收 number 而非 `tostring()` 包裹？`tostring()` 会导致 RFS 参数填写阶段校验不触发。
+- 密码变量（`*_password`）是否无 `validation` 块？
+- `error_message` 语言是否正确：cn 用中文，intl 用英文？
 
 ### 2. 安全基线 — 是否存在可部署的安全风险？
 
