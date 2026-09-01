@@ -2,7 +2,7 @@
 
 **AI 编码代理的规范技能定义** — 面向华为云解决方案实践的工程规则、验证检查清单与架构合同。
 
-[![npm version](https://img.shields.io/badge/version-0.17.1-blue)](https://github.com/Justin-TangPan/solution-practices)
+[![npm version](https://img.shields.io/badge/version-0.17.2-blue)](https://github.com/Justin-TangPan/solution-practices)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > **[English README](README_EN.md)**
@@ -26,6 +26,21 @@ SAC（Solution Practice Skills）是一个 **skills-core** 项目。主要交付
 | `sac-implementation` | Terraform 实现、变量、输出、user_data 与初始化脚本 |
 | `sac-quality` | 静态验证、安全审查、一致性检查与发布门禁 |
 | `sac-documentation` | 部署指南、参数表格与中英文双语文档生成 |
+
+## 工作流引擎
+
+多阶段 Practice 开发由 `workflows/engine.py` 编排，确保阶段间结构化数据传递与门控强制执行。
+
+```bash
+python workflows/engine.py start new-practice --inputs '{"project_name": "redis"}'
+python workflows/engine.py next
+python workflows/engine.py complete --phase architect --results '{"architecture_contract": {...}}'
+python workflows/engine.py status
+```
+
+可用工作流：`new-practice`、`maintain-practice`、`architecture-change`、`small-change`、`review-practice`、`documentation-change`。
+
+> **Plan B 入口**：`stages/README.md` — 将 Skills 重构为可执行 Pipeline Stage 的架构方向。
 
 ## 可选技能
 
@@ -215,7 +230,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 | 版本 | 日期 | 概要 |
 |---|---|---|
-| v0.17.1 | 2026-08-13 | README 拆分为纯中文版 + 独立英文版；使用方式新增自然语言调用说明 |
+| v0.17.2 | 2026-08-13 | README 拆分为纯中文版 + 独立英文版 `README_EN.md`；使用方式新增自然语言调用说明 |
+| v0.17.1 | 2026-08-13 | README 中英双语混排（后重构为拆分方案） |
 | v0.17.0 | 2026-08-12 | Skills 极简重构：以成功部署为核心，删除过度限制，user_data 极简化 |
 | v0.16.0 | 2026-08-11 | 最终清理：删除废弃工作流、悬空引用修复、61 个跟踪文件 |
 | v0.15.0 | 2026-08-11 | Skills-core 重新定位：删除非核心资产，收敛为纯技能项目 |

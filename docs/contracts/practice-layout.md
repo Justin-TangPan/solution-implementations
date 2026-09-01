@@ -7,9 +7,11 @@ Canonical layout:
 ```text
 practices/<practice>/cn/<region>/deploying-<practice>.tf
 practices/<practice>/intl/<region>/deploying-<practice>.tf
+practices/<practice>/<site>/<region>/scripts/install_<practice>.sh
 
 # Only when multiple variants coexist in one Region:
 practices/<practice>/<site>/<region>/<variant>/deploying-<practice>.tf
+practices/<practice>/<site>/<region>/<variant>/scripts/install_<practice>.sh
 ```
 
 Where:
@@ -34,6 +36,13 @@ Current policy:
 - A Region with one standard deployment is itself the deployable instance.
 - A Region with multiple deployments uses one subdirectory per variant, including `standard`.
 - `.extension` sits beside its Terraform file and is optional unless the quality gate is tightened.
+- Every deployable instance contains one `scripts/install_<practice>.sh`; `user_data` downloads its published
+  HTTPS object, verifies its fixed SHA-256, executes it, and removes the downloaded copy.
+- Public objects follow the Huawei documentation-samples layout:
+  `.../solution-as-code-moudle/deploying-<practice>/deploying-<practice>.tf` and
+  `.../solution-as-code-moudle/deploying-<practice>/userdata/install_<practice>.sh`.
+- Use the confirmed public documentation-samples host for the target Region; never infer its numeric suffix.
+  When variants coexist, suffix the published script name with `_<variant>`.
 
 ## Site-level document outputs
 

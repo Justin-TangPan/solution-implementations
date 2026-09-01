@@ -39,6 +39,34 @@ Skills are not preloaded.
 - External publishing, Git writes, local delivery packaging, and real cloud changes require separate authorization.
 - Record each modification batch in `.var/log/internal-changelog.md`; `.var/` is local-only.
 
+## Workflow engine (Plan A)
+
+Multi-phase Practice development is orchestrated via `workflows/engine.py`:
+
+```bash
+# 启动工作流
+python workflows/engine.py start new-practice --inputs '{"project_name": "redis", "site": "cn", "region": "cn-north-4"}'
+
+# 查看当前状态
+python workflows/engine.py status
+
+# 获取下一阶段指令
+python workflows/engine.py next
+
+# 完成当前阶段并推进
+python workflows/engine.py complete --phase architect --results '{"architecture_contract": {...}}'
+
+# 验证阶段结果（不推进）
+python workflows/engine.py validate --phase builder --results '{"practice_dir": "...", "terraform_files": [...]}'
+
+# 重置
+python workflows/engine.py reset
+```
+
+可用工作流：`new-practice`, `maintain-practice`, `architecture-change`, `small-change`, `review-practice`, `documentation-change`。
+
+每个阶段完成后，引擎自动验证 gate（`contract_complete` → `terraform_valid` → `no_blocker` → `docs_valid` → `delivery_complete`）。
+
 ## Checks
 
 - Node tests: `npm test`

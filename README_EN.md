@@ -2,7 +2,7 @@
 
 **Canonical Skill Definitions for AI Coding Agents** — Engineering rules, validation checklists, and architecture contracts for Huawei Cloud solution practices.
 
-[![npm version](https://img.shields.io/badge/version-0.17.1-blue)](https://github.com/Justin-TangPan/solution-practices)
+[![npm version](https://img.shields.io/badge/version-0.17.2-blue)](https://github.com/Justin-TangPan/solution-practices)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 > **[中文版 README](README.md)**
@@ -215,7 +215,8 @@ Types: `feat` / `fix` / `refactor` / `test` / `docs` / `chore`
 
 | Version | Date | Summary |
 |---|---|---|
-| v0.17.1 | 2026-08-13 | README split into pure Chinese + standalone English files; natural language usage guide |
+| v0.17.2 | 2026-08-13 | README split into pure Chinese + standalone `README_EN.md`; natural language usage guide |
+| v0.17.1 | 2026-08-13 | Inline bilingual README (later refactored into separate files) |
 | v0.17.0 | 2026-08-12 | Minimalist Skills refactor: centered on successful deployment |
 | v0.16.0 | 2026-08-11 | Final cleanup: removed deprecated workflows, dangling ref fixes |
 | v0.15.0 | 2026-08-11 | Skills-core repositioning: converged to pure skills project |

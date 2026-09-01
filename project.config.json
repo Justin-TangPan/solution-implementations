@@ -71,6 +71,20 @@
         "builder"
       ]
     },
+    "workflows": {
+      "enabled": true,
+      "default": "new-practice",
+      "definitions": {
+        "new-practice": "workflows/new-practice.yaml",
+        "maintain-practice": "workflows/maintain-practice.yaml",
+        "architecture-change": "workflows/architecture-change.yaml",
+        "small-change": "workflows/small-change.yaml",
+        "review-practice": "workflows/review-practice.yaml",
+        "documentation-change": "workflows/documentation-change.yaml"
+      },
+      "state_file": ".var/workflow-state.json",
+      "plan_b_entry": "stages/README.md"
+    },
     "adapters": {
       "claude-code": {
         "instructions": ".claude/CLAUDE.md",
