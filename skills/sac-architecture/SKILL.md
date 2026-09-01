@@ -54,9 +54,11 @@ Identify and support with evidence:
 2. runtime, services, ports, health checks, state, data paths, images, and external dependencies;
 3. service relationships and startup order, including database, cache, object storage, model API, or identity;
 4. image and package-source reachability for the target site and Region;
-5. backup, restore, upgrade, rollback, logs, monitoring, capacity, and operational limits;
-6. authentication, TLS, secret handling, supply chain, data protection, and compliance constraints;
-7. the nearest formal repository implementation and every intended deviation.
+5. the HTTPS distribution endpoint, immutable object path, and SHA-256 integrity value for the external bootstrap
+   script;
+6. backup, restore, upgrade, rollback, logs, monitoring, capacity, and operational limits;
+7. authentication, TLS, secret handling, supply chain, data protection, and compliance constraints;
+8. the nearest formal repository implementation and every intended deviation.
 
 Do not ask the user to pre-fill values that research can determine. Mark anything not supported by evidence as
 an assumption or confirmation item.
@@ -104,6 +106,7 @@ choices that materially change the implementation, including as applicable:
 - site and Region;
 - `standard` or `ha`;
 - template and runtime installation strategy;
+- external bootstrap-script URL, publication owner, and SHA-256 value;
 - public entry, source range, port, and TLS termination;
 - compute, storage, database, and billing choices;
 - product-specific external dependencies;
@@ -127,6 +130,7 @@ network, ports, CIDRs, DNS, EIP, and TLS boundary
 storage, database, backup, restore, and durability
 compute image, flavor, disk, billing, and capacity assumptions
 runtime installation and startup order
+external bootstrap source path, HTTPS object URL, publication owner, and SHA-256 value
 variables, fixed values, outputs, and user-visible endpoints
 availability, operations, upgrade, and rollback
 security decisions and accepted risk

@@ -41,6 +41,8 @@ explicit migration is requested.
 
 1. Resolve requested sites, locales, document types, and whether DOCX is required.
 2. Extract implementation, architecture, parameter, deployment, validation, security, rollback, and limitation facts.
+   For every deployable instance, record the external bootstrap object path, fixed SHA-256, publication owner,
+   required HTTPS reachability, install log, and failure diagnosis without exposing credentials or private endpoints.
 3. Scan for sensitive values; report location and type, never the value.
 4. Build or update the standard model with source, inferred, missing, and confirmation markers.
 5. Generate Chinese Markdown; adapt regional facts before producing international Chinese.

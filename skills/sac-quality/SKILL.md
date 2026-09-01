@@ -20,7 +20,7 @@ Read the relevant layout or release contract only when that scope is under revie
 ### 1. 语法正确性 — 代码能否被正确解析和执行？
 
 - Terraform HCL 语法、格式化、provider 声明、变量和 validation 块是否合规？
-- `user_data` Bash 脚本能否被 Bash 正确解析（`bash -n` 检查）？
+- `user_data` launcher 和随源码交付的 `scripts/install_<project>.sh` 能否被 Bash 正确解析（`bash -n` 检查）？
 - Docker Compose YAML 是否格式正确？
 - 变量完整性：所有变量都声明了 `default`、`description`、`type`、`nullable`？
 - 依赖引用：Terraform 资源间引用是否形成正确的依赖图？（无循环引用、无引用不存在的资源）
@@ -37,6 +37,7 @@ Read the relevant layout or release contract only when that scope is under revie
 - **网络暴露**：数据库、缓存、Docker API、调试端口等内部服务是否被公网暴露？
 - **管理入口**：SSH 是否限制为 CloudShell `/32` 源，而非 `0.0.0.0/0`？
 - **容器风险**：是否有无依据的 `privileged`、Docker socket、host network 或危险挂载？
+- **外链供应链**：脚本是否使用目标 Region 已确认的 `documentation-samples/.../deploying-<project>/userdata/install_*.sh` HTTPS 对象 URL，随 Practice 源码交付，并在执行前校验固定 SHA-256？是否避免 `curl | bash`？
 
 ### 3. 可部署性 — 模板在实际环境中能否成功部署？
 
@@ -44,6 +45,7 @@ Read the relevant layout or release contract only when that scope is under revie
 - **镜像可达性**：China 模板使用 `docker.wangzhou3.top/` 前缀？International 模板使用官方源？
 - **启动顺序**：服务间依赖是否通过 Docker Compose `depends_on` 或简单脚本控制？
 - **日志可追溯**：是否将 bootstrap 输出重定向到 `/var/log/{solution_name}-install.log`？
+- **分发可用性**：源脚本路径、分发对象 key、URL 和 SHA-256 是否一致？目标 Region 是否能通过 EIP 访问该 HTTPS 端点？
 - **幂等性**：包管理命令是否幂等？数据库初始化是否使用 `CREATE IF NOT EXISTS` 模式？
 - **权限正确性**：bind-mount 的文件是否可被容器非 root 进程读取（`chmod 0644`）？避免全局 `umask 077` 破坏容器文件读取
 
@@ -68,8 +70,9 @@ PYTHONPATH=.sac/tooling .venv-sac/bin/python -m scripts.tests.runner
 ```
 
 Run narrower instance checks when the task scope is small. Also run `terraform fmt -check`,
-`terraform validate` in an initialized offline-capable environment, HCL/JSON parsing, rendered Bash syntax
-(`bash -n`), Compose validation, and instance-scoped `rfs_policy` as applicable. If Terraform providers,
+`terraform validate` in an initialized offline-capable environment, HCL/JSON parsing, rendered `user_data`
+launcher and external bootstrap syntax (`bash -n`), bootstrap SHA-256, Compose validation, and instance-scoped
+`rfs_policy` as applicable. If Terraform providers,
 plugins, credentials, or network are unavailable, report the skipped command and cause.
 
 Separate:

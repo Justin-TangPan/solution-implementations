@@ -28,6 +28,7 @@ VPC and subnet CIDRs
 ingress ports and source CIDRs
 EIP bandwidth and billing
 runtime commands and persistent paths
+external bootstrap source path, HTTPS object URL, and SHA-256 value
 external service dependencies
 outputs and access instructions
 accepted deviations
@@ -52,7 +53,8 @@ practices/<project>/<site>/<region>/deploying-<project>_vN.tf
 
 Use `practices/<project>/<site>/<region>/<variant>/` only when variants coexist in that Region. Never add a
 redundant `terraform/` wrapper. Each deployable instance directory contains exactly one loadable `.tf` or
-`.tf.json` file and optional `.extension`.
+`.tf.json` file and optional `.extension`. It also contains exactly one `scripts/install_<project>.sh`, which is
+published as the instance's external bootstrap object.
 
 ## Infrastructure rules
 
@@ -84,43 +86,61 @@ redundant `terraform/` wrapper. Each deployable instance directory contains exac
   Use an **unquoted** heredoc delimiter (`<<-EOT`, not `<<-'EOT'`) so Terraform interpolates variables.
   Do not add Base64 encode/decode wrappers or intermediate variables for the root password.
 
-## user_data / bootstrap 脚本规范
+## user_data / 外联脚本分发规范
 
-以 **极简高效** 为核心原则，部署脚本不加复杂代码逻辑。
+所有 Practice 统一使用外联分发：Terraform `user_data` 只负责重置密码、记录日志、下载、校验和
+执行脚本；安装与应用部署逻辑全部放在同实例的 `scripts/install_<project>.sh` 中。不得内联 Compose、
+安装步骤或辅助脚本。
 
-### 标准模板
+### 对象路径
+
+```text
+# Source
+practices/<project>/<site>/<region>[/<variant>]/scripts/install_<project>.sh
+
+# Public Terraform object
+https://<documentation-samples-host>/solution-as-code-publicbucket/solution-as-code-moudle/deploying-<project>/deploying-<project>.tf
+
+# Public user_data script object
+https://<documentation-samples-host>/solution-as-code-publicbucket/solution-as-code-moudle/deploying-<project>/userdata/install_<project>.sh
+```
+
+例如 Supabase 中国站模板：
+
+```text
+https://documentation-samples.obs.cn-north-4.myhuaweicloud.com/solution-as-code-publicbucket/solution-as-code-moudle/deploying-supabase/deploying-supabase.tf
+https://documentation-samples.obs.cn-north-4.myhuaweicloud.com/solution-as-code-publicbucket/solution-as-code-moudle/deploying-supabase/userdata/install_supabase.sh
+```
+
+`documentation-samples` 完整主机名必须按目标 Region 使用已确认的公开分发端点，不得猜测数字后缀。
+多部署形态在脚本名中加 `_<variant>` 后缀，例如 `install_<project>_ha.sh`。对象 URL 和
+SHA-256 写在 Terraform `locals` 或 `user_data` 中，不得声明为客户可配置变量。不得写入 OBS 凭证或私有端点。
+
+### 标准 launcher
 
 ```bash
 #!/bin/bash
+set -e
 export DEBIAN_FRONTEND=noninteractive
 LOGFILE="/var/log/${var.solution_name}-install.log"
 exec 1>"$LOGFILE" 2>&1
+echo 'root:${var.ecs_password}' | chpasswd
 
-# System preparation
-apt-get update -y && apt-get install -y docker-compose-plugin
-
-# Deploy application
-mkdir -p "$APP_DIR"
-cat > "$APP_DIR/docker-compose.yaml" << 'EOF'
-version: "3.8"
-services:
-  app:
-    image: ${image}
-    restart: always
-EOF
-
-# Start services
-cd "$APP_DIR" && docker compose up -d
+install -m 0700 /dev/null /tmp/install_<project>.sh
+trap 'rm -f /tmp/install_<project>.sh' EXIT
+curl -fL "${local.install_script_url}" -o /tmp/install_<project>.sh
+echo "${local.install_script_sha256}  /tmp/install_<project>.sh" | sha256sum -c -
+/tmp/install_<project>.sh
 ```
 
 ### 核心原则
 
-1. **单段内联 Bash** — 不依赖外部安装脚本、不生成辅助脚本、不添加 base64 包装
-2. **无复杂逻辑** — 不加 retry 循环、状态机、条件分支树。若需要等待依赖就绪，使用简单的 `sleep N` + 单次健康检查
-3. **启动顺序** — 通过 Docker Compose `depends_on` 控制服务启动顺序，无需自定义编排逻辑
-4. **日志可追溯** — 输出重定向到 `/var/log/{solution_name}-install.log`
-5. **幂等性** — 包管理命令加 `-y` 等幂等标志；数据库初始化使用 `CREATE IF NOT EXISTS` 模式
-6. **容器权限** — 避免使用全局 `umask 077`（会影响 bind-mount 文件的容器可读性）。敏感文件用显式 `chmod` 控制权限即可
+1. **HTTPS + 完整性校验** — 下载必须使用 HTTPS 和 `curl -fL` 或等价失败感知选项，执行前必须用固定 SHA-256 校验
+2. **源码与对象一致** — 外链脚本必须随 Practice 源码交付；发布后按字节计算并固定 SHA-256，不得执行仓库外不可审计的脚本
+3. **敏感值不进参数与日志** — URL、命令行参数、输出和日志不得包含密码、Token 或云凭证；需向脚本传递的敏感值使用 root-only 临时文件或标准输入
+4. **部署逻辑归脚本** — 包安装、Compose/配置生成、启动顺序、幂等处理和健康检查在 `install_*.sh` 内完成
+5. **日志可追溯** — launcher 输出重定向 `/var/log/{solution_name}-install.log`；脚本不回显敏感值
+6. **临时文件清理** — 用 `trap` 保证成功或失败时都删除下载脚本和临时敏感文件；不用 `curl | bash`
 
 ### 镜像与版本
 
@@ -170,7 +190,7 @@ Run the smallest checks that cover the change:
 
 - `terraform fmt -check` when Terraform is installed;
 - HCL or JSON parsing;
-- rendered Bash syntax and generated Compose validation;
+- rendered `user_data` launcher and source bootstrap Bash syntax, SHA-256/URL consistency, and generated Compose validation;
 - instance-scoped `rfs_policy` when applicable;
 - affected documentation checks;
 - the formal project quality entry before local delivery.
@@ -182,7 +202,8 @@ is an environment result, not evidence that a template passed or failed in the c
 
 When local packaging is requested and quality has passed:
 
-1. Copy only authoritative `practices/` inputs and required documents to the local delivery directory.
+1. Copy only authoritative Terraform, external bootstrap scripts, optional `.extension`, and required documents
+   from `practices/` to the local delivery directory.
 2. Byte-compare every copied file with its source.
 3. Create the archive deterministically and list its contents.
 4. Generate SHA-256 checksums for delivered files and the archive.

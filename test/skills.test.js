@@ -49,3 +49,18 @@ test('Claude Code adapter skills mirror canonical skills', async () => {
     assert.ok(claudeSkills.includes(id), `.claude/skills/${id}/ wrapper missing`);
   }
 });
+
+test('canonical policy requires externally distributed bootstrap scripts', async () => {
+  const implementation = await readFile('skills/sac-implementation/SKILL.md', 'utf8');
+  const project = await readFile('skills/sac-project/SKILL.md', 'utf8');
+  const quality = await readFile('skills/sac-quality/SKILL.md', 'utf8');
+  const documentation = await readFile('skills/sac-documentation/SKILL.md', 'utf8');
+
+  assert.match(implementation, /所有 Practice 统一使用外联分发/);
+  assert.match(implementation, /documentation-samples\.obs\.cn-north-4\.myhuaweicloud\.com/);
+  assert.match(implementation, /sha256sum -c/);
+  assert.doesNotMatch(implementation, /单段内联 Bash/);
+  assert.match(project, /scripts\/install_<project>\.sh/);
+  assert.match(quality, /外链供应链/);
+  assert.match(documentation, /external bootstrap object path/);
+});

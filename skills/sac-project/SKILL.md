@@ -47,14 +47,16 @@ Each deployable instance directory contains exactly one loadable Terraform file 
 wrapper. Locale is a documentation dimension, not an implementation dimension. Empty project, site, Region,
 and variant directories are forbidden.
 
-Practice source contains only deployable Terraform, optional `.extension`, and required site documents.
-Evidence, extracted upstream files, duplicate archives, and generated packages stay outside `practices/`.
+Practice source contains deployable Terraform, one external bootstrap script per deployable instance, optional
+`.extension`, and required site documents. Evidence, extracted upstream files, duplicate archives, and generated
+packages stay outside `practices/`.
 
 ## Deliverables and boundaries
 
 For a complete new Practice, the required content is:
 
 - deployable Terraform for every requested `site/region[/variant]`;
+- `scripts/install_<project>.sh` for every deployable instance;
 - a Deployment Guide for every requested site;
 - Solution Details for every requested site.
 
